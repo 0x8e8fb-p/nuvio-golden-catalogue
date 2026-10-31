@@ -1,6 +1,6 @@
 # Golden Catalogue — one addon for a tidy Nuvio / Stremio home
 
-[![CI](https://github.com/USERNAME/nuvio-golden-catalogue/actions/workflows/ci.yml/badge.svg)](https://github.com/USERNAME/nuvio-golden-catalogue/actions/workflows/ci.yml)
+[![CI](https://github.com/0x8e8fb-p/nuvio-golden-catalogue/actions/workflows/ci.yml/badge.svg)](https://github.com/0x8e8fb-p/nuvio-golden-catalogue/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
 A single, well-organised catalogue for [Nuvio](https://github.com/haaihond/Nuvio-Wiki) and any
@@ -101,7 +101,7 @@ split into themed **presets** you mix and match. Each is a lean, independent man
 
 ## Deploy your own (about 5 minutes, free)
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/USERNAME/nuvio-golden-catalogue&env=TMDB_API_KEY&envDescription=Your%20free%20TMDB%20v3%20API%20key)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/0x8e8fb-p/nuvio-golden-catalogue&env=TMDB_API_KEY&envDescription=Your%20free%20TMDB%20v3%20API%20key)
 
 You host your own copy so the TMDB key stays yours.
 

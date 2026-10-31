@@ -100,7 +100,7 @@ function landingPage(config, presets, req) {
 
   <footer>
     Uses the TMDB API but is not endorsed or certified by TMDB.
-    <a class="link" href="https://github.com/USERNAME/nuvio-golden-catalogue">Source &amp; docs</a>.
+    <a class="link" href="https://github.com/0x8e8fb-p/nuvio-golden-catalogue">Source &amp; docs</a>.
   </footer>
 </div></body></html>`;
 }
