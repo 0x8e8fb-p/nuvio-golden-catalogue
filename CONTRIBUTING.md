@@ -1,34 +1,133 @@
 # Contributing
 
-Thanks for helping make Golden Catalogue better. This project is deliberately small: the interesting
-surface is the **golden config**, not the engine.
+Most changes are data edits: home rows in [data/catalogue.config.json](./data/catalogue.config.json), collection folders in [data/collections.json](./data/collections.json), and streaming-provider ids in [data/providers.json](./data/providers.json). The [README](./README.md#customising) documents every field.
 
-## Adding or changing a catalogue row
+## Setup
 
-1. Edit [`data/catalogue.config.json`](./data/catalogue.config.json).
-2. Give new rows a unique kebab-case `id` and a sensible `order` (group related rows by their tens
-   place — Movies 10s, Series 20s, Anime 30s, and so on).
-3. Point `source.endpoint` + `source.params` at a real TMDB v3 endpoint. Keep `include_adult` handling
-   intact — the client always forces `include_adult=false`; do not add adult genres/keywords.
-4. Run the checks:
-   ```bash
-   npm run validate:config   # schema + semantics (no network)
-   npm run ping:tmdb         # live: confirms your row returns results (needs TMDB_API_KEY)
-   npm test
-   npm run lint
-   ```
-5. Open a PR. CI runs lint + config validation + tests on every PR.
+Use Node 20.9 or newer (22 recommended).
 
-## Engine changes
+```bash
+npm install
+```
 
-- Keep the addon **metadata-only**. No stream scrapers, no debrid/piracy resolvers.
-- Preserve `tt` (IMDB) ids so Cinemeta and the user's stream addons keep working.
-- Add a unit test for any new mapping/handler behaviour (`tests/`), test-first where practical.
+## Before you open a pull request
 
-## Ground rules
+Run these three checks. CI runs the same ones with Node 24 on every push and pull request to master and main.
 
-- Never commit secrets. `.env` is gitignored; use `.env.example` for documentation.
-- Don't claim motion/animation the protocol can't deliver (see the README note).
-- Be kind in reviews. One topic per PR.
+```bash
+npm run validate:config
+npm run lint
+npm test
+```
 
-Released under the repo's [MIT](./LICENSE) licence.
+`npm run lint` must print `Lint OK.` If you have a TMDB key, also run the live canary. It checks IN and US unless you set `PING_REGIONS`:
+
+```bash
+TMDB_API_KEY=your_key npm run ping:tmdb
+TMDB_API_KEY=your_key PING_REGIONS=GB,DE npm run ping:tmdb
+```
+
+## Add a home row
+
+Add an object to `"catalogues"` in data/catalogue.config.json. This example blends worldwide and Indian romance films:
+
+```json
+{
+  "id": "romance",
+  "type": "movie",
+  "name": "Romance",
+  "order": 47,
+  "group": "Genres",
+  "source": {
+    "mix": [
+      { "endpoint": "/discover/movie", "params": { "with_genres": "10749", "sort_by": "popularity.desc", "vote_count.gte": 300 }, "weightBy": { "IN": 1, "_default": 3 } },
+      { "endpoint": "/discover/movie", "params": { "with_genres": "10749", "with_original_language": "hi|te|ta|ml|kn", "sort_by": "popularity.desc", "vote_count.gte": 20 }, "weight": 1 }
+    ]
+  },
+  "extra": [{ "name": "skip" }]
+}
+```
+
+- `id`: unique and kebab-case. It becomes the catalog id in the manifest, so do not rename existing rows.
+- `order`: rows are grouped by tens. Spotlight and For Right Now use 1 to 13, Indian Cinema the 20s, Streaming the 30s, Genres the 40s, Anime and World the 50s, Curated the 60s and Decades the 70s.
+- `group`: decides which preset includes the row. [src/presets.js](./src/presets.js) maps groups to presets.
+- `source`: use `mix` with `weightBy` to blend in an Indian feed, `endpoint` and `params` for a single TMDB feed, or `list` for a public MDBList list. Mix weights, both `weight` and the values in `weightBy`, are whole numbers.
+- Streaming rows: use `{{provider:<brand>}}` and `{{region}}` in the params. Regions without that brand leave the row out.
+- `"featured": false` keeps a row out of the full editions, so it appears only in its preset.
+
+Then run `npm run validate:config`. It rejects schema errors, duplicate ids and any region edition whose manifest reaches 8KB. With a key, `npm run ping:tmdb` confirms the row returns titles.
+
+## Add a collection folder
+
+Add an object to the `"folders"` array of a collection in data/collections.json. Three existing folders:
+
+```json
+[
+  { "id": "harry-potter", "title": "Harry Potter", "collection": 1241 },
+  { "id": "christopher-nolan", "title": "Christopher Nolan", "person": 525, "portrait": "/xuAIuYSmsUzKlUMBFGVZaWsY3DZ.jpg" },
+  { "id": "a24", "title": "A24", "company": "41077" }
+]
+```
+
+- Give the folder exactly one source field. The README lists them under Customising.
+- `id`: lowercase a-z, 0-9 and hyphens, at most 64 characters, unique across the whole file.
+- Verify every TMDB id before you add it (see [Verify TMDB ids](#verify-tmdb-ids)).
+- Optional fields: `types`, `params`, `regions`, `indiaMix`, `tileShape`, `logo`, `wordmark` and `portrait`.
+
+Then run `npm run validate:config`. It fails when an id has the wrong format or repeats, a tile shape is unknown, or a folder has no feed in any region. With a key, `npm run ping:tmdb` checks that every tab returns titles and every logo and portrait path exists.
+
+To add a collection, add an object with `id`, `title`, `tileShape` and `folders` to `"collections"`, and add its id to both lists in `"regionOrder"`. A collection missing from `"regionOrder"` sorts last. Collection ids follow the folder id rules.
+
+## Add or update a region
+
+Edit data/providers.json:
+
+1. Under `"regions"`, add the two-letter country code and map each brand key to its TMDB watch-provider ids in that country. Pipe-separated ids match any of them, as in `"paramount": "2303|2616"`.
+2. Add the country name to `"regionNames"` (the landing page's country picker uses it) and its IANA time zone to `"timeZones"`. Without a time zone, time-aware rows use UTC.
+3. Optionally add the country to `"major"` (the brands behind `{{providers}}`) and to `"indiaMix"`. Without an entry the region uses `_default`.
+4. A new streaming service also needs a `"brands"` entry with `name`, `network` (its TMDB network id) and `logo` (a transparent TMDB logo path).
+
+List a country's provider ids from the TMDB API (use `/watch/providers/tv` for shows):
+
+```bash
+curl -s "https://api.themoviedb.org/3/watch/providers/movie?watch_region=GB&api_key=$TMDB_API_KEY"
+```
+
+Each result has a `provider_id` and a `provider_name`. Then run `npm run validate:config`, which checks every listed region, and `PING_REGIONS=GB npm run ping:tmdb` with your key.
+
+## Verify TMDB ids
+
+A wrong id gives an empty folder or the wrong titles, so check each one before adding it. Open its TMDB page and confirm the name. The id is the number in the URL.
+
+| Field | Example page |
+|---|---|
+| `collection` | `https://www.themoviedb.org/collection/1241` |
+| `person` | `https://www.themoviedb.org/person/525` |
+| `company` | `https://www.themoviedb.org/company/41077` |
+| `network` | `https://www.themoviedb.org/network/213` |
+| `keyword` | `https://www.themoviedb.org/keyword/4379` |
+
+Genre ids are listed in [data/genres.json](./data/genres.json). After adding ids, run `npm run ping:tmdb` with a key.
+
+## Rules
+
+- No emojis or decorative symbols in data files, README.md, CONTRIBUTING.md, or code in src, scripts, tests and api. `npm run lint` rejects them. Write menu paths with ">", as in Settings > Addons > Add Addon.
+- Keep the manifest under 8KB. `npm run validate:config` checks every region edition with all time-aware rows switched on. The editions are about 3.4KB today.
+- Collection and folder ids use lowercase a-z, 0-9 and hyphens. Never rename or reuse an existing id. Each folder tab requests the catalog `gc-movie,<folder>` or `gc-series,<folder>`, so a renamed folder id breaks packs that users have already imported. Collection and folder ids also appear in pack ids, as `golden-<collection>` and `golden-<collection>-<folder>`.
+- Verify every TMDB id before adding it.
+- Keep the addon metadata only: no stream scrapers and no debrid or piracy resolvers. Keep IMDb (`tt`) ids, and do not add adult genres or keywords.
+- Never commit secrets. `.env` is gitignored. Document a new variable in .env.example and in the README's environment variable table.
+- Add a test in tests/ for any engine change.
+- Every relative link in README.md must point to a file that exists. `npm run lint` checks this.
+
+## Nightly canary
+
+[.github/workflows/nightly.yml](./.github/workflows/nightly.yml) runs every day at 06:00 UTC, and you can also start it from the Actions tab. It runs `npm run validate:config`, then `npm run ping:tmdb` for IN and US with the `TMDB_API_KEY` repository secret. It fails when a row feed or folder tab comes back empty, or when a logo or portrait path is gone from TMDB. That catches TMDB auth problems, renamed endpoints and stale provider, network, keyword or collection ids before users see empty rows.
+
+When it fails, the job log lists each failed check. Fix the ids in data/ and confirm with `npm run ping:tmdb` locally.
+
+To add the secret, open the repository's Settings > Secrets and variables > Actions > New repository secret and name it `TMDB_API_KEY`. Without the secret, for example on a fork, the ping skips and exits 0. In public repositories GitHub turns off scheduled workflows after 60 days without activity; turn it back on from the Actions tab.
+
+## Licence
+
+Contributions are released under the project's [MIT licence](./LICENSE).

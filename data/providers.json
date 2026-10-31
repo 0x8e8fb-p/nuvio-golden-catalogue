@@ -1,18 +1,112 @@
 {
-  "_comment": "TMDB watch-provider ids (powered by JustWatch), used with with_watch_providers + watch_region on /discover. Provider availability is region-bound; set defaults.region to your country. Verified via nightly ping. These ids are global and stable; the catalogues that use them are in catalogue.config.json.",
-  "watch_providers": {
-    "Netflix": 8,
-    "Amazon Prime Video": 9,
-    "Disney Plus": 337,
-    "Max": 1899,
-    "HBO Max": 1899,
-    "Apple TV Plus": 350,
-    "Hulu": 15,
-    "Paramount Plus": 531,
-    "Peacock": 386,
-    "JioHotstar": 122,
-    "Zee5": 232,
-    "SonyLIV": 237,
-    "Crunchyroll": 283
+  "_comment": "Region-aware streaming data. 'regions' maps a brand key to TMDB watch-provider ids for that country (pipe-separated ids mean OR). Folders and rows that reference a brand missing from a region are left out of that region's edition. 'brands' holds the display name, the TMDB network id and the verified transparent logo path used as brand art (logos marked dark in TMDB are whitened by the renderer). Provider ids verified against TMDB's watch_region filters for US and IN on 2026-10-31; GB, CA, AU and DE from the same source. The nightly canary catches drift.",
+  "regionNames": {
+    "US": "United States",
+    "IN": "India",
+    "GB": "United Kingdom",
+    "CA": "Canada",
+    "AU": "Australia",
+    "DE": "Germany"
+  },
+  "timeZones": {
+    "_comment": "Clock used for time-aware rows (evening and weekend rows) in each region edition. Regions not listed use UTC.",
+    "US": "America/New_York",
+    "IN": "Asia/Kolkata",
+    "GB": "Europe/London",
+    "CA": "America/Toronto",
+    "AU": "Australia/Sydney",
+    "DE": "Europe/Berlin"
+  },
+  "brands": {
+    "netflix": { "name": "Netflix", "network": 213, "logo": "/wwemzKWzjKYJFfCeiB57q3r4Bcm.png" },
+    "prime": { "name": "Prime Video", "network": 1024, "logo": "/w7HfLNm9CWwRmAMU58udl2L7We7.png" },
+    "disney": { "name": "Disney+", "network": 2739, "logo": "/1edZOYAfoyZyZ3rklNSiUpXX30Q.png" },
+    "hbomax": { "name": "HBO Max", "network": 3186, "logo": "/nmU0UMDJB3dRRQSTUqawzF2Od1a.png" },
+    "apple": { "name": "Apple TV", "network": 2552, "logo": "/bngHRFi794mnMq34gfVcm9nDxN1.png" },
+    "hulu": { "name": "Hulu", "network": 453, "logo": "/pqUTCleNUiTLAVlelGxUgWn1ELh.png" },
+    "paramount": { "name": "Paramount+", "network": 4330, "logo": "/fi83B1oztoS47xxcemFdPMhIzK.png" },
+    "peacock": { "name": "Peacock", "network": 3353, "logo": "/gIAcGTjKKr0KOHL5s4O36roJ8p7.png" },
+    "jiohotstar": { "name": "JioHotstar", "network": 8036, "logo": "/f4UwAB8E6DEQfFhyKEH4NEvwYRt.png" },
+    "sonyliv": { "name": "SonyLIV", "network": 2646, "logo": "/1PAnuglMmNBiUSFn6HWWtE7GOAJ.png" },
+    "zee5": { "name": "ZEE5", "network": 2590, "logo": "/q6meEcCbZXTb1cDbJ7bl1ITorAa.png" },
+    "aha": { "name": "aha", "network": 3758, "logo": "/whVDNlpH9Z9gqU3v6m4o4stnjgX.png" },
+    "sunnxt": { "name": "Sun NXT" },
+    "mxplayer": { "name": "MX Player", "network": 2964 },
+    "crunchyroll": { "name": "Crunchyroll", "network": 1112 }
+  },
+  "regions": {
+    "US": {
+      "netflix": "8",
+      "prime": "9",
+      "disney": "337",
+      "hbomax": "1899",
+      "apple": "350",
+      "hulu": "15",
+      "paramount": "2303|2616",
+      "peacock": "386|387",
+      "crunchyroll": "283"
+    },
+    "IN": {
+      "netflix": "8",
+      "prime": "119",
+      "jiohotstar": "2336",
+      "sonyliv": "237",
+      "zee5": "232",
+      "aha": "532",
+      "sunnxt": "309",
+      "apple": "350",
+      "mxplayer": "1898|515",
+      "crunchyroll": "283"
+    },
+    "GB": {
+      "netflix": "8",
+      "prime": "9",
+      "disney": "337",
+      "hbomax": "1899",
+      "apple": "350",
+      "paramount": "531",
+      "crunchyroll": "283"
+    },
+    "CA": {
+      "netflix": "8",
+      "prime": "119",
+      "disney": "337",
+      "apple": "350",
+      "paramount": "531",
+      "crunchyroll": "283"
+    },
+    "AU": {
+      "netflix": "8",
+      "prime": "119",
+      "disney": "337",
+      "hbomax": "1899",
+      "apple": "350",
+      "paramount": "531",
+      "crunchyroll": "283"
+    },
+    "DE": {
+      "netflix": "8",
+      "prime": "9",
+      "disney": "337",
+      "hbomax": "1899",
+      "apple": "350",
+      "paramount": "531",
+      "crunchyroll": "283"
+    },
+    "_default": {
+      "netflix": "8",
+      "disney": "337",
+      "apple": "350"
+    }
+  },
+  "major": {
+    "US": ["netflix", "prime", "disney", "hbomax", "apple", "hulu", "paramount", "peacock"],
+    "IN": ["netflix", "prime", "jiohotstar", "sonyliv", "zee5", "aha", "sunnxt"],
+    "_default": ["netflix", "prime", "disney", "hbomax", "apple", "paramount"]
+  },
+  "indiaMix": {
+    "_comment": "How strongly Indian titles are mixed into general rows and folders: [global weight, India weight]. Rows can override this per row.",
+    "IN": [1, 1],
+    "_default": [3, 1]
   }
 }

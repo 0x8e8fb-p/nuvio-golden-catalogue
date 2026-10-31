@@ -43,9 +43,12 @@ function rpdbPosterUrl(rpdbKey, imdbId) {
 function createTmdbClient(opts = {}) {
   const apiKey = opts.apiKey ?? process.env.TMDB_API_KEY;
   const language = opts.language ?? process.env.TMDB_LANGUAGE ?? 'en-US';
+  // TMDB_API_BASE lets tests and local runs point at a mock server.
+  const apiBase = String(opts.baseUrl || process.env.TMDB_API_BASE || TMDB_BASE).replace(/\/+$/, '');
   const ttl = opts.ttlMs ?? DEFAULT_TTL_MS;
   const fetchImpl = opts.fetch ?? globalThis.fetch;
   const maxRetries = opts.maxRetries ?? 2;
+  const timeoutMs = opts.timeoutMs ?? 6000;
   const rpdbKey = opts.rpdbKey ?? process.env.RPDB_API_KEY ?? null;
 
   const cache = opts.cache || new TtlLruCache({ ttl, max: opts.cacheMax || 2000 });
@@ -63,12 +66,13 @@ function createTmdbClient(opts = {}) {
   }
 
   function buildUrl(endpoint, params = {}) {
-    const url = new URL(TMDB_BASE + endpoint);
+    const url = new URL(apiBase + endpoint);
     url.searchParams.set('api_key', apiKey);
-    url.searchParams.set('language', language);
+    // language: null omits the parameter (image endpoints filter by it).
+    if (params.language !== null) url.searchParams.set('language', params.language || language);
     url.searchParams.set('include_adult', 'false');
     for (const [k, v] of Object.entries(params)) {
-      if (v === undefined || v === null || v === '') continue;
+      if (k === 'language' || v === undefined || v === null || v === '') continue;
       url.searchParams.set(k, String(v));
     }
     return url;
@@ -100,25 +104,38 @@ function createTmdbClient(opts = {}) {
 
     let lastErr;
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      let res;
       try {
-        const res = await fetchImpl(cacheKey, {
+        res = await fetchImpl(cacheKey, {
           headers: { accept: 'application/json' },
+          signal: AbortSignal.timeout(timeoutMs),
         });
-        if (res.status === 429 || res.status >= 500) {
-          lastErr = new Error(`TMDB ${res.status}`);
-          await sleep(250 * (attempt + 1));
-          continue;
-        }
-        if (!res.ok) {
-          throw new Error(`TMDB request failed: ${res.status} ${endpoint}`);
-        }
+      } catch (err) {
+        // Network error or timeout: worth another try.
+        lastErr = err;
+        await sleep(250 * (attempt + 1));
+        continue;
+      }
+      if (res.status === 429 || res.status >= 500) {
+        lastErr = new Error(`TMDB ${res.status}`);
+        await sleep(250 * (attempt + 1));
+        continue;
+      }
+      if (!res.ok) {
+        // 4xx other than 429 (an unknown id, a removed title): the request is
+        // wrong, TMDB is fine. No retry, and the breaker is left alone.
+        const err = new Error(`TMDB request failed: ${res.status} ${endpoint}`);
+        err.status = res.status;
+        throw err;
+      }
+      try {
         const value = await res.json();
         cache.set(cacheKey, value);
         stale.set(cacheKey, value); // refresh last-known-good
         breaker.recordSuccess();
         return value;
       } catch (err) {
-        lastErr = err;
+        lastErr = err; // truncated or invalid body
         await sleep(250 * (attempt + 1));
       }
     }

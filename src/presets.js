@@ -1,43 +1,50 @@
 'use strict';
 
 /**
- * Presets let the catalogue scale past the Stremio 8KB manifest limit.
+ * Presets: themed, lean manifests served at distinct URLs.
  *
- * One addon instance can advertise only ~75 rows in a single manifest. Presets
- * carve the full catalogue into themed, lean manifests served at distinct URLs:
+ *   /r/<CC>/manifest.json            -> the full region edition (recommended)
+ *   /r/<CC>/c/<preset>/manifest.json -> only the rows whose group matches
  *
- *   /manifest.json            -> the default curated set (everything that fits)
- *   /c/<preset>/manifest.json -> only the rows whose group matches the preset
+ * Most people want the full edition plus the collections pack. Presets exist
+ * for people who prefer to pick themes, or to install a theme on a second
+ * profile. Presets are derived from each row's `group`.
  *
- * Install several preset URLs in Nuvio and you collectively get the entire
- * catalogue, each manifest comfortably under 8KB. Presets are derived from the
- * `group` field on each row, so adding a row to a group needs no code changes.
+ * Version 2 had 19 presets. Their slugs still resolve (LEGACY_ALIASES), each
+ * to the closest current preset, under the addon id it had in v2, so an
+ * existing install keeps working instead of turning empty.
  */
 
 const { loadConfig } = require('./lib/config-loader');
 
-// Maps a preset slug -> the group-name prefixes it includes. A row belongs to a
-// preset if its `group` starts with any of the listed prefixes.
 const PRESET_DEFINITIONS = {
-  movies: { name: 'Movies', groups: ['Movies'] },
-  series: { name: 'Series', groups: ['Series'] },
-  streaming: { name: 'Streaming Now', groups: ['Streaming'] },
-  anime: { name: 'Anime', groups: ['Anime'] },
-  docs: { name: 'Documentaries', groups: ['Documentaries'] },
-  kids: { name: 'Kids & Family', groups: ['Kids'] },
-  decades: { name: 'By Decade', groups: ['By Decade'] },
-  regional: { name: 'Regional', groups: ['Regional'] },
-  networks: { name: 'Networks', groups: ['Networks'] },
-  studios: { name: 'Studios', groups: ['Studios'] },
-  franchises: { name: 'Franchises', groups: ['Franchises'] },
-  themes: { name: 'Moods & Themes', groups: ['Moods'] },
-  seasonal: { name: 'Seasonal', groups: ['Seasonal'] },
-  curated: { name: 'Curated', groups: ['Curated'] },
-  lists: { name: 'Community Lists', groups: ['Community Lists'] },
-  now: { name: 'For Right Now', groups: ['For Right Now'] },
-  runtime: { name: 'By Runtime', groups: ['By Runtime'] },
-  discovery: { name: 'Discovery', groups: ['Discovery'] },
-  onthisday: { name: 'On This Day', groups: ['On This Day'] },
+  spotlight: { name: 'Spotlight', groups: ['Spotlight', 'For Right Now'] },
+  indian: { name: 'Indian Cinema', groups: ['Indian Cinema'] },
+  streaming: { name: 'Streaming', groups: ['Streaming'] },
+  genres: { name: 'Genres', groups: ['Genres'] },
+  world: { name: 'Anime and World', groups: ['Anime', 'World'] },
+  curated: { name: 'Curated', groups: ['Curated', 'Decades'] },
+};
+
+/** v2 slug -> current preset with the closest rows. Not listed on the landing page. */
+const LEGACY_ALIASES = {
+  movies: 'spotlight',
+  series: 'spotlight',
+  now: 'spotlight',
+  discovery: 'spotlight',
+  seasonal: 'spotlight',
+  networks: 'streaming',
+  studios: 'streaming',
+  anime: 'world',
+  regional: 'indian',
+  docs: 'genres',
+  kids: 'genres',
+  themes: 'genres',
+  runtime: 'genres',
+  franchises: 'curated',
+  lists: 'curated',
+  decades: 'curated',
+  onthisday: 'curated',
 };
 
 function matchesGroups(groupValue, prefixes) {
@@ -45,38 +52,41 @@ function matchesGroups(groupValue, prefixes) {
   return prefixes.some((p) => groupValue.startsWith(p));
 }
 
+/** The current preset a slug stands for (itself, or a v2 alias), or null. */
+function resolvePreset(slug) {
+  if (Object.prototype.hasOwnProperty.call(PRESET_DEFINITIONS, slug)) return slug;
+  if (Object.prototype.hasOwnProperty.call(LEGACY_ALIASES, slug)) return LEGACY_ALIASES[slug];
+  return null;
+}
+
 /**
- * Return a shallow-cloned config containing only the rows for the given preset
- * slug, with the addon id/name specialised so each preset installs as its own
- * addon in Nuvio. Returns null for an unknown preset.
+ * Config containing only the rows of one preset, with a namespaced addon id so
+ * each preset installs as its own addon. A v2 slug keeps its own id. Null for
+ * an unknown preset.
  */
 function configForPreset(slug, baseConfig = loadConfig()) {
-  const def = PRESET_DEFINITIONS[slug];
-  if (!def) return null;
-
-  const catalogues = baseConfig.catalogues.filter((row) =>
-    matchesGroups(row.group, def.groups)
-  );
+  const target = resolvePreset(slug);
+  if (!target) return null;
+  const def = PRESET_DEFINITIONS[target];
+  const catalogues = baseConfig.catalogues.filter((row) => matchesGroups(row.group, def.groups));
   if (!catalogues.length) return null;
-
   return Object.assign({}, baseConfig, {
     catalogues,
     addon: Object.assign({}, baseConfig.addon, {
       id: `${baseConfig.addon.id}.${slug}`,
-      name: `${baseConfig.addon.name} · ${def.name}`,
+      name: `${baseConfig.addon.name}: ${def.name}`,
     }),
   });
 }
 
 function listPresets(baseConfig = loadConfig()) {
   return Object.entries(PRESET_DEFINITIONS)
-    .map(([slug, def]) => {
-      const count = baseConfig.catalogues.filter((row) =>
-        matchesGroups(row.group, def.groups)
-      ).length;
-      return { slug, name: def.name, rows: count };
-    })
+    .map(([slug, def]) => ({
+      slug,
+      name: def.name,
+      rows: baseConfig.catalogues.filter((row) => matchesGroups(row.group, def.groups)).length,
+    }))
     .filter((p) => p.rows > 0);
 }
 
-module.exports = { PRESET_DEFINITIONS, configForPreset, listPresets };
+module.exports = { PRESET_DEFINITIONS, LEGACY_ALIASES, resolvePreset, configForPreset, listPresets };

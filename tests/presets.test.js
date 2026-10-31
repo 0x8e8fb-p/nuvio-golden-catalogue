@@ -3,7 +3,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { loadConfig } = require('../src/lib/config-loader');
-const { configForPreset, listPresets } = require('../src/presets');
+const { PRESET_DEFINITIONS, LEGACY_ALIASES, resolvePreset, configForPreset, listPresets } = require('../src/presets');
 const { buildManifest } = require('../src/manifest');
 const { installLinks } = require('../src/landing');
 
@@ -25,6 +25,20 @@ test('each preset config contains only its group rows and a unique addon id', ()
     assert.ok(cfg, `preset ${p.slug} should resolve`);
     assert.equal(cfg.catalogues.length, p.rows);
     assert.ok(cfg.addon.id.endsWith(`.${p.slug}`), 'preset id should be namespaced');
+  }
+});
+
+test('v2 preset slugs resolve to the closest preset under their own id', () => {
+  for (const [slug, target] of Object.entries(LEGACY_ALIASES)) {
+    assert.ok(PRESET_DEFINITIONS[target], `${slug} -> ${target} exists`);
+    const cfg = configForPreset(slug, config);
+    assert.ok(cfg && cfg.catalogues.length > 0, `${slug} has rows`);
+    assert.equal(cfg.addon.id, `${config.addon.id}.${slug}`);
+  }
+  assert.equal(listPresets(config).some((p) => LEGACY_ALIASES[p.slug]), false, 'aliases are not listed');
+  for (const name of ['__proto__', 'constructor', 'toString', 'hasOwnProperty']) {
+    assert.equal(resolvePreset(name), null, name);
+    assert.equal(configForPreset(name, config), null, name);
   }
 });
 

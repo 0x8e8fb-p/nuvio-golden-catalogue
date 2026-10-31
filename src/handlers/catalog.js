@@ -1,174 +1,287 @@
 'use strict';
 
 /**
- * Config-driven catalog handler (Task 5 — core).
+ * Config-driven catalog handler.
  *
- * For each request:
- *   1. Resolve the config row by id (+ type match).
- *   2. Merge the row's static source.params with the user's extras:
- *        - genre  -> mapped param (with_genres) via the genre-id lookup
- *        - search -> the TMDB search endpoint's `query` param
- *        - skip   -> TMDB `page` (Stremio page size is 100; TMDB is 20/page)
- *   3. Call TMDB and map results to tt-id meta previews (adult-safe).
+ * Serves three kinds of catalogs:
+ *   1. Home rows from data/catalogue.config.json. A row reads one TMDB
+ *      endpoint, or blends several ("mix": worldwide plus Indian titles), or a
+ *      public MDBList list.
+ *   2. Collection folders through the two search-only catalogs gc-movie and
+ *      gc-series. A folder tab asks for "gc-movie,<folder>" (Nuvio resolves
+ *      the catalog by the part before the comma, so pageSize and skip still
+ *      apply, and the tab is labelled with the catalog name alone). The older
+ *      form, the folder as the genre extra ("IN.netflix"), is still accepted.
+ *      Search-only catalogs never appear on Nuvio's Home or Discover screens.
+ *   3. Search, through the same two catalogs: worldwide and Indian results
+ *      are merged, so a search for "Pushpa" or "Interstellar" both work.
  *
- * Pagination: Stremio sends skip in multiples of 100. TMDB pages are 20 items.
- * We translate a skip window into the right TMDB page(s) and slice. When a page
- * runs past TMDB's results we return a short/empty array, which Stremio treats
- * as end-of-catalog.
+ * Every catalog is region-aware: the edition's region (from the install URL)
+ * picks streaming services and the Indian mix ratio.
+ *
+ * Pagination: Nuvio asks for the next page with skip = skip + items received,
+ * so skip is treated as an exact position in the row's item stream (see
+ * src/lib/mix.js), never as a page number. Rows declare pageSize so the first
+ * request already has the right size. Nuvio ends a row at the first empty
+ * page, so a window whose titles are all filtered out (no IMDb id, no art)
+ * looks a few windows further before answering empty.
+ *
+ * Cache hints: a page built after a TMDB failure carries none, so neither the
+ * CDN nor the TV keeps a short or empty page for an hour.
  *
  * Degrades gracefully: with no TMDB key, returns an empty catalog instead of
  * throwing, so the addon still boots and installs.
  */
 
-const { createTmdbClient } = require('../tmdb/client');
+const { getTmdbClient } = require('../tmdb/shared');
 const { toMetaPreviews, previewsFromImdbIds } = require('../tmdb/mappers');
-const { resolveParams } = require('../lib/templating');
+const { resolveParams, hasUnavailable } = require('../lib/templating');
 const { onThisWeekWindow, rotationPage } = require('../lib/schedule');
+const { regionTimeZone } = require('../lib/region');
 const { createMdblistSource } = require('../sources/mdblist');
+const { fetchMixedWindow, fetchWindow, TMDB_PAGE, MAX_POSITION } = require('../lib/mix');
+const { CATALOG_IDS, decodeFolderGenre, decodeFolderCatalog, INDIAN_LANGS } = require('../collections/engine');
+const { folderPage } = require('../collections/folder-feed');
 
-const STREMIO_PAGE = 100; // Stremio's fixed catalogue page size
-const TMDB_PAGE = 20; // TMDB's fixed results-per-page
+const STREMIO_PAGE = 100; // Stremio's default catalogue page size
+const FOLDER_PAGE = 40; // folder tabs page in steps of 40 (declared as pageSize)
+const SEARCH_FIRST_PAGE = 40; // the first search page covers TMDB's first two pages
+const SEARCH_TOP = 10; // Indian matches move up to follow the top 10 results
+const ROTATE_PAGES = 5; // rotating rows start 0 to 4 pages deep, chosen per day
+const LOOK_AHEAD = 3; // extra windows to try when every title in one was filtered out
+const LIMIT_READ = 2; // limited rows (Top 10) read twice the limit, so drops are refilled
+
+const CACHE_ROW = { cacheMaxAge: 3600, staleRevalidate: 6 * 3600, staleError: 86400 };
+const CACHE_LIST = { cacheMaxAge: 6 * 3600, staleRevalidate: 6 * 3600, staleError: 86400 };
+const CACHE_SEARCH = { cacheMaxAge: 1800, staleRevalidate: 3600, staleError: 86400 };
+
+const EMPTY = { metas: [] };
+const INDIAN = new Set(INDIAN_LANGS.split('|'));
+
+/**
+ * A TMDB client that remembers whether any request failed. The feeds turn
+ * failures into short or empty windows, so the handler would otherwise not
+ * know that a page is incomplete.
+ */
+function watched(client) {
+  const state = { failed: false };
+  const proxy = Object.create(client);
+  proxy.get = async (...args) => {
+    try {
+      return await client.get(...args);
+    } catch (err) {
+      if (!(err && err.status === 404)) state.failed = true; // a missing title is an answer
+      throw err;
+    }
+  };
+  return { client: proxy, state };
+}
+
+/** Response for metas, with cache hints only when every request succeeded. */
+function reply(metas, cache, state) {
+  return state.failed ? { metas } : { metas, ...cache };
+}
 
 function createCatalogHandler(config, deps = {}) {
-  const client =
-    deps.client ||
-    createTmdbClient({
-      language: config.defaults.language,
-    });
-
+  const getClient = () => deps.client || getTmdbClient();
   const byId = new Map(config.catalogues.map((c) => [c.id, c]));
   const genres = config.genres || {};
   const mdblist = deps.mdblist || createMdblistSource();
+  const region = config.defaults.region || 'US';
+  const timeZone = regionTimeZone(region);
 
-  function mapExtras(row, extra = {}) {
-    const region = config.defaults.region || 'US';
-    // Resolve static params with templating ({{region}}, {{now-90d}}, etc.).
+  function rowParams(row, extra = {}) {
     const params = resolveParams(row.source.params || {}, { region });
-    let endpointOverride = null;
-
     for (const def of row.extra || []) {
       const value = extra[def.name];
-
       if (def.name === 'genre' && value) {
-        const table = genres[row.type] || {};
+        // data/genres.json keys shows as "tv" (TMDB's name); rows say "series".
+        const table = genres[row.type] || genres[row.type === 'series' ? 'tv' : row.type] || {};
         const id = table[value];
         const param = (def.mapTo && def.mapTo.param) || 'with_genres';
         if (id !== undefined) params[param] = id;
       }
-
-      if (def.name === 'search' && value) {
-        params.query = value;
-      }
+      if (def.name === 'search' && value) params.query = value;
     }
-    return { params, endpointOverride };
-  }
-
-  return async function catalogHandler(args) {
-    const row = byId.get(args.id);
-    if (!row || row.type !== args.type) {
-      return { metas: [] };
-    }
-
-    if (!client.hasKey()) {
-      // No key configured yet — valid empty catalogue.
-      return { metas: [] };
-    }
-
-    const extra = args.extra || {};
-
-    // A search-required row with no query returns empty (nothing to feed).
-    const needsSearch = (row.extra || []).some(
-      (e) => e.name === 'search' && e.isRequired
-    );
-    if (needsSearch && !extra.search) {
-      return { metas: [] };
-    }
-
-    const skipBase = Number(extra.skip) || 0;
-    const pageSizeCfg = config.defaults.pageSize || STREMIO_PAGE;
-
-    // MDBList (or other) curated-list source: fetch tt ids, enrich via TMDB.
-    if (row.source.list) {
-      const ids = await mdblist.imdbIds(
-        row.source.list,
-        row.type,
-        skipBase,
-        skipBase + pageSizeCfg
-      );
-      const metas = await previewsFromImdbIds(client, ids, {
-        stremioType: row.type,
-        posterShape: row.posterShape || config.defaults.posterShape,
-      });
-      return {
-        metas,
-        cacheMaxAge: 6 * 3600,
-        staleRevalidate: 6 * 3600,
-        staleError: 24 * 3600,
-      };
-    }
-
-    const { params } = mapExtras(row, extra);
-
-    // Novel: "on this week in history" window — rewrite the date filters to a
-    // past year's same calendar week, rotating daily for freshness.
     if (row.window === 'onThisWeek') {
       const w = onThisWeekWindow(Date.now());
       params['primary_release_date.gte'] = w.params['primary_release_date.gte'];
       params['primary_release_date.lte'] = w.params['primary_release_date.lte'];
     }
+    return params;
+  }
 
-    // Novel: deterministic daily rotation — offset the first page by a
-    // date-seeded amount so the row is stable within a day but refreshes daily.
-    const rotateOffset = row.rotate ? (rotationPage(Date.now()) - 1) * TMDB_PAGE : 0;
-
-    // Pagination: figure out which TMDB pages cover the requested skip window.
-    const skip = skipBase + rotateOffset;
-    const pageSize = pageSizeCfg;
-    const windowStart = skip;
-    const windowEnd = skip + pageSize;
-
-    const firstTmdbPage = Math.floor(windowStart / TMDB_PAGE) + 1;
-    const lastTmdbPage = Math.ceil(windowEnd / TMDB_PAGE);
-
-    const collected = [];
-    let totalPagesKnown = Infinity;
-
-    for (let page = firstTmdbPage; page <= lastTmdbPage; page++) {
-      if (page > totalPagesKnown) break;
-      let data;
-      try {
-        data = await client.get(row.source.endpoint, { ...params, page });
-      } catch (err) {
-        if (err.code === 'NO_TMDB_KEY') return { metas: [] };
-        // On a transient error, stop paging with what we have.
-        break;
-      }
-      if (typeof data.total_pages === 'number') totalPagesKnown = data.total_pages;
-      const results = data.results || [];
-      // Tag the absolute index so we can slice the skip window precisely.
-      const base = (page - 1) * TMDB_PAGE;
-      results.forEach((r, i) => collected.push({ r, absIndex: base + i }));
-      if (results.length < TMDB_PAGE) break; // no more results after this page
-    }
-
-    // Slice to the requested window, then map (mapping resolves tt ids).
-    const windowItems = collected
-      .filter((x) => x.absIndex >= windowStart && x.absIndex < windowEnd)
-      .map((x) => x.r);
-
-    const metas = await toMetaPreviews(client, windowItems, {
+  function mapItems(client, items, row, opts = {}) {
+    return toMetaPreviews(client, items, {
       stremioType: row.type,
       posterShape: row.posterShape || config.defaults.posterShape,
+      art: row.art,
+      rankStart: opts.rankStart,
     });
+  }
 
-    return {
-      metas,
-      // Cache per Stremio's cache headers to spare TMDB and speed up the TV.
-      cacheMaxAge: 3600,
-      staleRevalidate: 3600,
-      staleError: 86400,
+  /**
+   * One page of metas from position `start`. When a full window maps to no
+   * titles at all, the next windows are tried, up to LOOK_AHEAD of them, so
+   * one unlucky window does not end the row. Nuvio drops titles it already
+   * shows, so the overlap this creates on the next request is harmless.
+   */
+  async function pageFrom(fetchSlots, start, count, toMetas) {
+    let metas = [];
+    for (let i = 0, pos = start; i <= LOOK_AHEAD && pos < MAX_POSITION; i++, pos += count) {
+      const items = await fetchSlots(pos, count);
+      metas = await toMetas(items);
+      if (metas.length || items.length < count) break; // titles found, or the feed ended
+    }
+    return metas;
+  }
+
+  /**
+   * Search. The first page holds TMDB's first 40 results, with Indian-language
+   * matches moved up to follow the top 10, so a regional title is not buried
+   * under worldwide titles that share a word with it. Later pages continue at
+   * the exact position Nuvio asks for.
+   */
+  async function search(client, state, type, query, skip) {
+    const endpoint = type === 'series' ? '/search/tv' : '/search/movie';
+    let items;
+    if (skip === 0) {
+      const found = await fetchWindow(client, endpoint, { query }, 0, SEARCH_FIRST_PAGE);
+      const top = found.slice(0, SEARCH_TOP);
+      const rest = found.slice(SEARCH_TOP);
+      items = top.concat(
+        rest.filter((it) => INDIAN.has(it.original_language)),
+        rest.filter((it) => !INDIAN.has(it.original_language))
+      );
+    } else {
+      items = await fetchWindow(client, endpoint, { query }, skip, TMDB_PAGE);
+    }
+    const metas = await toMetaPreviews(client, items, { stremioType: type, art: 'poster' });
+    return reply(metas, CACHE_SEARCH, state);
+  }
+
+  /** A collection folder tab, for movies or shows. */
+  async function folder(client, state, type, entry, skip) {
+    const source = entry.sources[type];
+    if (!source) return EMPTY;
+    const fetchSlots = async (start, count) => {
+      const page = await folderPage(client, source, type, start, count, { mdblist });
+      return page.imdbIds ? page.imdbIds.map((id) => ({ imdbId: id })) : page.items || [];
     };
+    const toMetas = (items) =>
+      items.length && items[0].imdbId
+        ? previewsFromImdbIds(client, items.map((x) => x.imdbId), { stremioType: type, art: 'tile' })
+        : toMetaPreviews(client, items, { stremioType: type, art: 'tile' });
+    const metas = await pageFrom(fetchSlots, skip, FOLDER_PAGE, toMetas);
+    return reply(metas, CACHE_ROW, state);
+  }
+
+  return async function catalogHandler(args) {
+    const extra = args.extra || {};
+    const raw = Math.floor(Number(extra.skip) || 0);
+    // TMDB stops at page 500 (10,000 titles per feed), so a deeper skip has
+    // nothing to show. The cap also keeps the position arithmetic exact.
+    if (raw >= MAX_POSITION) return EMPTY;
+    const skip = Math.max(0, raw);
+    const base = getClient();
+    if (!base.hasKey()) return EMPTY; // no key configured yet: valid empty catalogue
+    const { client, state } = watched(base);
+
+    // Collections engine + search (two search-only catalogs per type).
+    const engineType = Object.keys(CATALOG_IDS).find((t) => String(args.id).startsWith(CATALOG_IDS[t]));
+    if (engineType && engineType === args.type) {
+      if (extra.search) return search(client, state, args.type, String(extra.search).slice(0, 120), skip);
+      const decoded = decodeFolderCatalog(args.id, region) || (extra.genre ? decodeFolderGenre(String(extra.genre)) : null);
+      if (decoded) return folder(client, state, args.type, decoded.folder, skip);
+      return EMPTY;
+    }
+
+    const row = byId.get(args.id);
+    if (!row || row.type !== args.type) return EMPTY;
+
+    const needsSearch = (row.extra || []).some((e) => e.name === 'search' && e.isRequired);
+    if (needsSearch && !extra.search) return EMPTY;
+
+    const pageSize = row.pageSize || config.defaults.pageSize || STREMIO_PAGE;
+    // Rows with a limit (Top 10) end at the limit, whatever the client asks for.
+    const size = row.limit ? Math.min(pageSize, row.limit) : pageSize;
+    const take = row.limit ? Math.min(size, row.limit - skip) : size;
+    if (take <= 0) return EMPTY;
+
+    // Curated public list (MDBList): ordered IMDb ids, enriched from TMDB.
+    if (row.source.list) {
+      const ids = await mdblist.imdbIds(row.source.list, row.type, skip, skip + take);
+      const metas = await previewsFromImdbIds(client, ids, {
+        stremioType: row.type,
+        posterShape: row.posterShape || config.defaults.posterShape,
+        art: row.art,
+        rankStart: skip + 1,
+      });
+      return reply(metas, CACHE_LIST, state);
+    }
+
+    let fetchSlots;
+    if (Array.isArray(row.source.mix)) {
+      // Blended row: several weighted feeds (e.g. worldwide + Indian).
+      const components = row.source.mix.map((c) => ({
+        endpoint: c.endpoint,
+        params: resolveParams(c.params || {}, { region }),
+        weight: weightFor(c, region),
+      }));
+      if (components.some((c) => hasUnavailable(c.params))) return EMPTY;
+      fetchSlots = (start, count) => fetchMixedWindow(client, components, start, count);
+    } else {
+      const params = rowParams(row, extra);
+      if (hasUnavailable(params)) return EMPTY;
+      fetchSlots = (start, count) => fetchWindow(client, row.source.endpoint, params, start, count);
+    }
+
+    const offset = row.rotate ? await rotationOffset(fetchSlots, size, Date.now(), timeZone) : 0;
+
+    if (row.limit) {
+      // A title can be dropped (no IMDb id, no art) or appear in two feeds, so
+      // a limited row reads more than it shows and keeps the first `take`.
+      const items = await fetchSlots(offset + skip, take * LIMIT_READ);
+      const metas = await mapItems(client, items, row, { rankStart: skip + 1 });
+      return reply(metas.slice(0, take), CACHE_ROW, state);
+    }
+
+    const metas = await pageFrom(fetchSlots, offset + skip, take, (items) => mapItems(client, items, row, { rankStart: skip + 1 }));
+    return reply(metas, CACHE_ROW, state);
   };
 }
 
-module.exports = { createCatalogHandler };
+/**
+ * Daily rotation for rows with `rotate`: the row starts 0 to 4 pages deep,
+ * chosen by the edition's local date, so it is stable within that day and
+ * different the next, and never flips in the middle of an evening. When the
+ * rotated first page is thin (a small feed), the row is not rotated. TMDB
+ * responses are cached, so the probe is free on the first page and cheap later.
+ * @param {(start: number, count: number) => Promise<object[]>} fetchSlots
+ * @param {number} size items per page
+ * @param {number} [now]
+ * @param {string} [timeZone] the edition's IANA zone
+ * @returns {Promise<number>} position offset in items
+ */
+async function rotationOffset(fetchSlots, size, now = Date.now(), timeZone) {
+  const pages = rotationPage(now, ROTATE_PAGES, timeZone) - 1;
+  if (pages <= 0) return 0;
+  const start = pages * size;
+  const probe = await fetchSlots(start, size);
+  return probe.length >= Math.ceil(size / 2) ? start : 0;
+}
+
+/**
+ * Weight of a mix component in a region: a whole number (fractions are
+ * rounded, so the round-robin arithmetic stays exact). A component may carry a
+ * fixed "weight", or "weightBy": {"IN": 2, "_default": 1}.
+ */
+function weightFor(component, region) {
+  const raw = component.weightBy
+    ? component.weightBy[region] ?? component.weightBy._default
+    : component.weight ?? 1;
+  const w = Math.round(Number(raw));
+  return Number.isFinite(w) && w > 0 ? w : 0;
+}
+
+module.exports = { createCatalogHandler, weightFor, rotationOffset, FOLDER_PAGE };

@@ -1,55 +1,86 @@
 'use strict';
 
 /**
- * Minimal, dependency-free landing page with install links for the default
- * catalogue and every preset. Rendered server-side as a single HTML string.
+ * Landing page: pick a country, then copy two links into Nuvio.
  *
- * Note on "animations": the page itself uses tasteful CSS, but the catalogue
- * artwork shown inside Nuvio is still images — the addon protocol cannot drive
- * motion in the client (stated plainly here and in the README).
+ *   1. The addon (region edition manifest)  -> Settings > Addons > Add Addon
+ *   2. The Golden Collections pack          -> Settings > Content & Discovery >
+ *                                              Collections > Import > URL
+ *
+ * Also lists the themed presets (for a second profile) and a Stremio install
+ * link. Server-rendered for the default country, so the links show without
+ * JavaScript; a small script swaps them when another country is picked.
+ * No framework, no external assets.
  */
 
+const { knownRegions, regionName } = require('./lib/region');
+const { packStats } = require('./collections/pack');
+
 function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, (c) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-  }[c]));
+  return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
-function originFrom(req) {
-  const proto = (req.headers['x-forwarded-proto'] || 'https').split(',')[0];
-  const host = req.headers['x-forwarded-host'] || req.headers.host || 'localhost';
-  return `${proto}://${host}`;
-}
-
+/**
+ * Install links for a manifest URL: the stremio:// deep link and Stremio Web.
+ * @param {string} manifestUrl e.g. https://x.vercel.app/r/IN/manifest.json
+ * @returns {{stremio: string, web: string}}
+ */
 function installLinks(manifestUrl) {
-  const stremio = manifestUrl.replace(/^https?:\/\//, 'stremio://');
-  const web = `https://web.stremio.com/#/addons?addon=${encodeURIComponent(manifestUrl)}`;
-  return { stremio, web };
+  return {
+    stremio: String(manifestUrl).replace(/^https?:\/\//, 'stremio://'),
+    web: `https://web.stremio.com/#/addons?addon=${encodeURIComponent(manifestUrl)}`,
+  };
 }
 
-function row(label, manifestUrl, rows) {
-  const { stremio, web } = installLinks(manifestUrl);
-  const count = rows != null ? ` <span class="count">${rows} rows</span>` : '';
-  return `
-    <li>
-      <div class="r-label">${escapeHtml(label)}${count}</div>
-      <div class="r-actions">
-        <a class="btn" href="${escapeHtml(stremio)}">Install</a>
-        <a class="btn ghost" href="${escapeHtml(web)}" target="_blank" rel="noopener">Stremio Web</a>
-        <code>${escapeHtml(manifestUrl)}</code>
-      </div>
-    </li>`;
+/** Every link the page shows for one country. */
+function linksFor(origin, region, presets) {
+  const base = `${origin}/r/${region}`;
+  return {
+    manifest: `${base}/manifest.json`,
+    pack: `${base}/collections.json`,
+    packGif: `${base}/collections.json?focus=gif`,
+    stremio: installLinks(`${base}/manifest.json`).stremio,
+    presets: Object.fromEntries(presets.map((p) => [p.slug, `${base}/c/${p.slug}/manifest.json`])),
+  };
 }
 
-function landingPage(config, presets, req) {
-  const origin = originFrom(req);
+function copyRow(id, value) {
+  return `<div class="url"><code id="${id}">${escapeHtml(value)}</code><button type="button" data-copy="${id}">Copy</button></div>`;
+}
+
+/**
+ * @param {object} config loaded catalogue config
+ * @param {{defaultRegion: string, origin: string|null, presets?: Array<{slug: string, name: string, rows: number}>,
+ *   tmdbKeyConfigured?: boolean}} opts
+ */
+function landingPage(config, opts) {
+  const origin = opts.origin || '';
+  const presets = opts.presets || [];
+  const regions = knownRegions();
+  const def = regions.includes(opts.defaultRegion) ? opts.defaultRegion : regions[0];
+  const stats = Object.fromEntries(regions.map((r) => [r, packStats(r)]));
+  const links = Object.fromEntries(regions.map((r) => [r, linksFor(origin, r, presets)]));
+  const first = links[def];
   const name = escapeHtml(config.addon.name);
-  const desc = escapeHtml(config.addon.description);
+  const homeRows = config.catalogues.filter((r) => r.featured !== false).length;
 
-  const defaultRow = row('Full Catalogue (curated)', `${origin}/manifest.json`, config.catalogues.length);
-  const presetRows = presets
-    .map((p) => row(`${p.name}`, `${origin}/c/${p.slug}/manifest.json`, p.rows))
+  const options = regions
+    .map((r) => `<option value="${r}"${r === def ? ' selected' : ''}>${escapeHtml(regionName(r))}</option>`)
     .join('');
+
+  const presetRows = presets
+    .map(
+      (p) => `<div class="preset"><div class="pname">${escapeHtml(p.name)} <span>${p.rows} rows</span></div>${copyRow(
+        `preset-${escapeHtml(p.slug)}`,
+        first.presets[p.slug]
+      )}</div>`
+    )
+    .join('\n    ');
+
+  const warning = opts.tmdbKeyConfigured === false
+    ? `<div class="warn"><b>This deployment has no TMDB key yet, so every row is empty.</b> Add <code>TMDB_API_KEY</code>
+    (the v3 API Key from themoviedb.org) in the host's environment variables, then redeploy.</div>`
+    : '';
 
   return `<!doctype html>
 <html lang="en"><head>
@@ -57,52 +88,113 @@ function landingPage(config, presets, req) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${name}</title>
 <style>
-  :root { color-scheme: dark; }
+  :root { color-scheme: dark; --bg: #07080b; --card: #101219; --line: #1d2030; --text: #eceef4; --muted: #8b90a3; --accent: #e8e9ee; }
   * { box-sizing: border-box; }
-  body { margin: 0; font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: #0f1016; color: #e8e8ee; padding: 2rem 1rem; }
-  .wrap { max-width: 760px; margin: 0 auto; }
-  h1 { font-size: 1.7rem; margin: 0 0 .25rem; }
-  p.lead { color: #a7a7b4; margin: 0 0 1.5rem; }
-  .note { background: #1a1b26; border: 1px solid #2a2b3a; border-radius: 10px; padding: .75rem 1rem;
-    color: #c7c7d4; font-size: .9rem; margin-bottom: 1.5rem; }
-  h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: .05em; color: #8a8a99;
-    margin: 1.75rem 0 .5rem; }
-  ul { list-style: none; padding: 0; margin: 0; display: grid; gap: .6rem; }
-  li { background: #16171f; border: 1px solid #23242f; border-radius: 10px; padding: .75rem .9rem; }
-  .r-label { font-weight: 600; margin-bottom: .45rem; }
-  .count { color: #7f7f8c; font-weight: 400; font-size: .85em; }
-  .r-actions { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
-  .btn { background: #6a5cff; color: #fff; text-decoration: none; padding: .35rem .8rem;
-    border-radius: 8px; font-size: .85rem; font-weight: 600; }
-  .btn.ghost { background: transparent; border: 1px solid #3a3b4a; color: #c7c7d4; }
-  code { font-size: .78rem; color: #6f7080; word-break: break-all; }
-  footer { margin-top: 2rem; color: #6f7080; font-size: .82rem; }
-  a.link { color: #9a8cff; }
+  body { margin: 0; font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 56px 20px 64px; }
+  .eyebrow { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+  h1 { font-size: 34px; line-height: 1.15; margin: 0 0 12px; letter-spacing: -.01em; }
+  h3 { font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 40px 0 12px; }
+  .lead { color: var(--muted); margin: 0 0 32px; max-width: 60ch; }
+  .warn { border: 1px solid #5a4316; background: #1c160a; color: #f1d9a6; border-radius: 12px; padding: 14px 16px; margin: 0 0 24px; font-size: 14px; }
+  .warn code { display: inline; padding: 1px 6px; font-size: 12px; }
+  .region { display: flex; gap: 12px; align-items: center; margin: 0 0 28px; }
+  .region label { color: var(--muted); font-size: 14px; }
+  select { background: var(--card); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; font-size: 15px; }
+  .step { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px 22px; margin: 0 0 14px; }
+  .step h2 { font-size: 16px; margin: 0 0 4px; }
+  .step p { color: var(--muted); margin: 0 0 14px; font-size: 14px; }
+  .url { display: flex; gap: 10px; align-items: stretch; }
+  code { flex: 1; display: block; background: #0a0b10; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; color: #c9ccd8; word-break: break-all; }
+  button { background: var(--accent); color: #0a0b10; border: 0; border-radius: 10px; padding: 0 16px; font-weight: 600; font-size: 14px; cursor: pointer; transition: transform 160ms ease-out; white-space: nowrap; }
+  button:active { transform: scale(0.97); }
+  .path { color: var(--muted); font-size: 13px; margin-top: 10px; }
+  .alt { color: var(--muted); font-size: 13px; margin: 16px 0 8px; }
+  .facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 28px 0 0; }
+  .fact { border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+  .fact b { display: block; font-size: 20px; }
+  .fact span { color: var(--muted); font-size: 13px; }
+  .preset { margin: 0 0 12px; }
+  .pname { font-size: 14px; margin: 0 0 6px; }
+  .pname span { color: var(--muted); font-size: 13px; }
+  .note { color: var(--muted); font-size: 14px; }
+  a { color: #c9ccd8; }
+  footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
+  @media (max-width: 560px) { .facts { grid-template-columns: 1fr; } .url { flex-direction: column; } button { padding: 10px; } }
 </style>
 </head><body><div class="wrap">
+  <p class="eyebrow">For Nuvio and Stremio</p>
   <h1>${name}</h1>
-  <p class="lead">${desc}</p>
-  <div class="note">
-    Paste any <strong>Install</strong> URL into <strong>Nuvio → Settings → Addons → Add Addon</strong>.
-    A single Stremio manifest is capped at 8KB (~75 rows), so the catalogue is also split into
-    <strong>presets</strong> — install as many as you like to get everything.
-    Artwork is shown as still images; the addon cannot drive UI animation (that is owned by the app).
+  <p class="lead">Top 10 rows, cinematic title tiles and a full collections pack, with Indian and worldwide
+    movies and shows blended in every row. Pick your country, then add two links to Nuvio.</p>
+  ${warning}
+  <div class="region">
+    <label for="region">Country</label>
+    <select id="region">${options}</select>
   </div>
 
-  <h2>Recommended</h2>
-  <ul>${defaultRow}</ul>
+  <div class="step">
+    <h2>1. Add the addon</h2>
+    <p>Home rows, search and the engine behind the collections.</p>
+    ${copyRow('manifest', first.manifest)}
+    <div class="path">Nuvio: Settings &rsaquo; Addons &rsaquo; Add Addon, paste the link. Then move ${name} to the top
+      of the addon list, so its artwork is the one shown on the home screen.</div>
+  </div>
 
-  <p style="margin:1rem 0"><a class="link" href="/configure">Open the configure page</a> to pick a region and build your own install URLs.</p>
+  <div class="step">
+    <h2>2. Import Golden Collections</h2>
+    <p>Streaming services, franchises, directors and more, each with live artwork.</p>
+    ${copyRow('pack', first.pack)}
+    <div class="path">Nuvio TV: Settings &rsaquo; Content &amp; Discovery &rsaquo; Collections &rsaquo; Import &rsaquo; URL.
+      Import again any time to update; your collections are replaced, not duplicated.</div>
+    <p class="alt">TV on Android 8 or older? Nuvio animates WebP only from Android 9, so import this link instead
+      to get GIF focus animations. Same collections, so you can switch either way.</p>
+    ${copyRow('packGif', first.packGif)}
+  </div>
 
-  <h2>Presets (mix and match)</h2>
-  <ul>${presetRows}</ul>
+  <div class="facts">
+    <div class="fact"><b>${homeRows}</b><span>home rows</span></div>
+    <div class="fact"><b id="folders">${stats[def] ? stats[def].folders : 0}</b><span>collection folders</span></div>
+    <div class="fact"><b>0</b><span>API keys needed in Nuvio</span></div>
+  </div>
 
-  <footer>
-    Uses the TMDB API but is not endorsed or certified by TMDB.
-    <a class="link" href="https://github.com/0x8e8fb-p/nuvio-golden-catalogue">Source &amp; docs</a>.
-  </footer>
-</div></body></html>`;
+  <h3 id="presets">Themed presets</h3>
+  <p class="note">Optional. Smaller addons with one theme each, for a second profile. Most people only need step 1.</p>
+    ${presetRows}
+
+  <h3>Stremio</h3>
+  <p class="note">The addon works in Stremio too (collections are a Nuvio feature):
+    <a id="stremio" href="${escapeHtml(first.stremio)}">install in Stremio</a>.</p>
+
+  <footer>Metadata only; your stream addons handle playback. Data and images from TMDB, used under its terms
+    but not endorsed by TMDB. <a href="https://github.com/0x8e8fb-p/nuvio-golden-catalogue">Source</a></footer>
+</div>
+<script>
+  var LINKS = ${JSON.stringify(links).replace(/</g, '\\u003c')};
+  var STATS = ${JSON.stringify(stats)};
+  function setText(id, value) { var el = document.getElementById(id); if (el) el.textContent = value; }
+  function render() {
+    var r = document.getElementById('region').value;
+    var l = LINKS[r];
+    if (!l) return;
+    setText('manifest', l.manifest);
+    setText('pack', l.pack);
+    setText('packGif', l.packGif);
+    Object.keys(l.presets).forEach(function (slug) { setText('preset-' + slug, l.presets[slug]); });
+    document.getElementById('stremio').setAttribute('href', l.stremio);
+    setText('folders', (STATS[r] || { folders: 0 }).folders);
+  }
+  document.getElementById('region').addEventListener('change', render);
+  Array.prototype.forEach.call(document.querySelectorAll('button[data-copy]'), function (b) {
+    b.addEventListener('click', function () {
+      var text = document.getElementById(b.getAttribute('data-copy')).textContent;
+      if (navigator.clipboard) navigator.clipboard.writeText(text);
+      b.textContent = 'Copied';
+      setTimeout(function () { b.textContent = 'Copy'; }, 1400);
+    });
+  });
+</script>
+</body></html>`;
 }
 
 module.exports = { landingPage, installLinks };

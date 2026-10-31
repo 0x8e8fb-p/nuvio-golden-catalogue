@@ -18,6 +18,8 @@
  */
 
 const { posterUrl, backdropUrl, rpdbPosterUrl } = require('./client');
+const { artEnabled, tileUrl, rankUrl, logoUrl } = require('../art/urls');
+const { tmdbImageUrl } = require('../art/fetch-image');
 
 // Caches TMDB numeric id -> imdb tt id (or null when none exists).
 const imdbCache = new Map();
@@ -85,6 +87,50 @@ function isAdult(item) {
   return item && item.adult === true;
 }
 
+/**
+ * Should this row use generated artwork? "tile" and "rank" rows do whenever the
+ * public origin is known; "poster" rows (and ART_MODE=posters) keep TMDB posters.
+ */
+function wantsArt(art) {
+  return art !== 'poster' && artEnabled();
+}
+
+/** Can this TMDB item be shown in the requested art style? */
+function hasArtInputs(item, art) {
+  if (!wantsArt(art)) return Boolean(item.poster_path);
+  // Title tiles and rank tiles both have a layout for a poster alone, so titles without
+  // a TMDB backdrop (common for Indian films on deep pages) stay in the row.
+  return Boolean(item.backdrop_path || item.poster_path);
+}
+
+/**
+ * Point a preview at generated artwork. Nuvio reads `landscapePoster` as a
+ * finished 16:9 tile (no logo drawn over it) and `_rawPosterUrl` as the image
+ * to show if the generated tile ever fails to load. `background` is only set
+ * from a real backdrop, never from the portrait poster.
+ */
+function applyArt(preview, item, stremioType, art, rank) {
+  const backdrop = item.backdrop_path;
+  const tile =
+    art === 'rank'
+      ? rankUrl({ rank, poster: item.poster_path, backdrop })
+      : tileUrl({
+          type: stremioType,
+          tmdbId: item.id,
+          backdrop,
+          poster: item.poster_path,
+          title: preview.name,
+          lang: item.original_language,
+        });
+  preview.posterShape = 'landscape';
+  preview.poster = tile;
+  preview.landscapePoster = tile;
+  preview._rawPosterUrl = tmdbImageUrl('w780', backdrop) || tmdbImageUrl('w500', item.poster_path);
+  const bg = tmdbImageUrl('w1280', backdrop);
+  if (bg) preview.background = bg;
+  preview.logo = logoUrl({ type: stremioType, tmdbId: item.id, lang: item.original_language });
+}
+
 async function mapWithConcurrency(items, limit, fn) {
   const results = new Array(items.length);
   let i = 0;
@@ -103,7 +149,8 @@ async function mapWithConcurrency(items, limit, fn) {
  *
  * @param {object} client   TMDB client
  * @param {Array}  results  TMDB results array
- * @param {object} opts     { stremioType, posterShape, concurrency }
+ * @param {object} opts     { stremioType, posterShape, art, rankStart, concurrency }
+ *   art: "tile" (default) | "rank" | "poster". rankStart: rank of results[0].
  * @returns {Promise<Array>} meta-preview objects (adult-filtered, tt ids only)
  */
 async function toMetaPreviews(client, results, opts) {
@@ -111,27 +158,32 @@ async function toMetaPreviews(client, results, opts) {
   const mediaType = stremioType === 'series' ? 'tv' : 'movie';
   const posterShape = opts.posterShape || 'poster';
   const concurrency = opts.concurrency || 10;
+  const art = opts.art || 'tile';
+  const useArt = wantsArt(art);
 
   const clean = (results || [])
     .filter((it) => it && !isAdult(it))
-    .filter((it) => it.poster_path); // a preview needs a poster
+    .filter((it) => hasArtInputs(it, art));
 
   const mapped = await mapWithConcurrency(clean, concurrency, async (item) => {
     const { preview, tmdbId } = toPartialPreview(item, stremioType, posterShape);
     const imdb = await resolveImdbId(client, mediaType, tmdbId);
     if (!imdb) return null; // drop items we can't give a usable (tt) id
     preview.id = imdb;
+    return { preview, item };
+  });
 
-    // When an RPDB key is set, swap the portrait poster for the ratings-badge
-    // version (keeps landscape rows on their backdrop). Falls back silently.
-    if (client.rpdbKey && posterShape !== 'landscape') {
-      const rpdb = rpdbPosterUrl(client.rpdbKey, imdb);
+  // Art is applied in the final order, so rank numbers never skip a dropped item.
+  return mapped.filter(Boolean).map(({ preview, item }, i) => {
+    if (useArt) {
+      applyArt(preview, item, stremioType, art, (opts.rankStart || 1) + i);
+    } else if (client.rpdbKey && posterShape !== 'landscape') {
+      // RPDB ratings-badge posters only make sense on portrait posters.
+      const rpdb = rpdbPosterUrl(client.rpdbKey, preview.id);
       if (rpdb) preview.poster = rpdb;
     }
     return preview;
   });
-
-  return mapped.filter(Boolean);
 }
 
 /**
@@ -145,7 +197,8 @@ async function previewsFromImdbIds(client, imdbIds, opts) {
   const mediaType = stremioType === 'series' ? 'tv' : 'movie';
   const posterShape = opts.posterShape || 'poster';
   const concurrency = opts.concurrency || 10;
-  const { rpdbPosterUrl } = require('./client');
+  const art = opts.art || 'tile';
+  const useArt = wantsArt(art);
 
   const mapped = await mapWithConcurrency(imdbIds, concurrency, async (imdbId) => {
     let found;
@@ -156,18 +209,21 @@ async function previewsFromImdbIds(client, imdbIds, opts) {
     } catch {
       found = null;
     }
-    if (!found || isAdult(found) || !found.poster_path) return null;
-
+    if (!found || isAdult(found) || !hasArtInputs(found, art)) return null;
     const { preview } = toPartialPreview(found, stremioType, posterShape);
     preview.id = imdbId;
-    if (client.rpdbKey && posterShape !== 'landscape') {
-      const rpdb = rpdbPosterUrl(client.rpdbKey, imdbId);
+    return { preview, item: found };
+  });
+
+  return mapped.filter(Boolean).map(({ preview, item }, i) => {
+    if (useArt) {
+      applyArt(preview, item, stremioType, art, (opts.rankStart || 1) + i);
+    } else if (client.rpdbKey && posterShape !== 'landscape') {
+      const rpdb = rpdbPosterUrl(client.rpdbKey, preview.id);
       if (rpdb) preview.poster = rpdb;
     }
     return preview;
   });
-
-  return mapped.filter(Boolean);
 }
 
 module.exports = {
@@ -175,6 +231,7 @@ module.exports = {
   toPartialPreview,
   resolveImdbId,
   previewsFromImdbIds,
+  mapWithConcurrency,
   isAdult,
   _imdbCache: imdbCache,
 };

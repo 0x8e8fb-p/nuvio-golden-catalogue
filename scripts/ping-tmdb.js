@@ -2,102 +2,131 @@
 'use strict';
 
 /**
- * Nightly canary / live validation.
+ * Nightly canary / live validation against TMDB.
  *
- * Hits every configured catalogue endpoint once with its static params and
- * asserts a 200 with a non-empty, adult-free results array. Catches TMDB auth
- * breakage, renamed endpoints, bad network/keyword ids, and empty rows before
- * a user sees a broken catalogue.
+ * For each region in PING_REGIONS (default "IN,US"):
+ *   - every home row: each feed it reads (each part of a mix) returns a
+ *     non-empty, adult-free first page; list rows return IMDb ids;
+ *   - every collection folder tab: its feed returns titles (franchises,
+ *     universes and director credits included);
+ * and once: every brand logo and director portrait path in data/ still
+ * exists on TMDB's image CDN.
  *
- * Skips gracefully (exit 0) when TMDB_API_KEY is absent — so it no-ops on fork
- * PRs where secrets are unavailable, rather than failing the build.
+ * Catches TMDB auth breakage, renamed endpoints, bad provider/network/
+ * keyword/collection ids and empty rows before a user sees them.
  *
- * For search-required rows we inject a sample query so the endpoint is exercised.
+ * Skips (exit 0) when TMDB_API_KEY is absent, so it no-ops on fork PRs where
+ * secrets are unavailable. If api.themoviedb.org is blocked on your network,
+ * run it with TMDB_API_BASE=https://api.tmdb.org/3.
  */
 
 const { loadConfig } = require('../src/lib/config-loader');
 const { createTmdbClient } = require('../src/tmdb/client');
-const { resolveParams } = require('../src/lib/templating');
+const { resolveParams, hasUnavailable } = require('../src/lib/templating');
+const { normalizeRegion } = require('../src/lib/region');
+const { regionFolders, PACK } = require('../src/collections/engine');
+const { folderPage } = require('../src/collections/folder-feed');
+const { createMdblistSource } = require('../src/sources/mdblist');
+const { weightFor } = require('../src/handlers/catalog');
+const { mapWithConcurrency } = require('../src/tmdb/mappers');
 
-const SAMPLE_SEARCH = 'matrix';
+const PROVIDERS = require('../data/providers.json');
+
+const regions = String(process.env.PING_REGIONS || 'IN,US')
+  .split(',')
+  .map(normalizeRegion)
+  .filter(Boolean);
 
 async function main() {
   const config = loadConfig({ fresh: true });
   const client = createTmdbClient({ language: config.defaults.language });
-
   if (!client.hasKey()) {
-    console.log('TMDB_API_KEY not set — skipping live ping (exit 0).');
+    console.log('TMDB_API_KEY not set, skipping the live ping (exit 0).');
     process.exit(0);
   }
-
-  const failures = [];
-  let adultSeen = 0;
-  const { createMdblistSource } = require('../src/sources/mdblist');
   const mdblist = createMdblistSource();
+  const failures = [];
+  let adult = 0;
+  let checks = 0;
 
-  for (const row of config.catalogues) {
-    // List-source rows: verify the public list returns items with tt ids.
-    if (row.source.list) {
-      try {
-        const ids = await mdblist.imdbIds(row.source.list, row.type, 0, 10);
-        if (ids.length === 0) {
-          failures.push(`${row.id} (list) returned 0 items`);
-          console.log(`  [empty] ${row.id}`);
-        } else {
-          console.log(`  [ok] ${row.id} - ${ids.length} list items`);
-        }
-      } catch (err) {
-        failures.push(`${row.id} (list) error: ${err.message}`);
-        console.log(`  [error] ${row.id} - ${err.message}`);
-      }
-      continue;
-    }
-
-    const region = config.defaults.region || 'US';
-    const params = resolveParams(row.source.params || {}, { region });
-    const needsSearch = (row.extra || []).some(
-      (e) => e.name === 'search' && e.isRequired
-    );
-    const needsGenre = (row.extra || []).some(
-      (e) => e.name === 'genre' && e.isRequired
-    );
-    if (needsSearch) params.query = SAMPLE_SEARCH;
-    if (needsGenre) {
-      // pick the first genre known for this type
-      const table = config.genres[row.type] || {};
-      const first = Object.values(table)[0];
-      if (first !== undefined) params.with_genres = first;
-    }
-
+  async function feed(label, endpoint, params) {
+    checks++;
     try {
-      const data = await client.get(row.source.endpoint, { ...params, page: 1 });
-      const results = data.results || [];
-      const anyAdult = results.some((r) => r.adult === true);
-      if (anyAdult) adultSeen++;
-      if (results.length === 0) {
-        failures.push(`${row.id} (${row.source.endpoint}) returned 0 results`);
-        console.log(`  [empty] ${row.id}`);
-      } else {
-        console.log(`  [ok] ${row.id} - ${results.length} results`);
-      }
+      const data = await client.get(endpoint, { ...params, page: 1 });
+      const results = (data && data.results) || [];
+      if (results.some((r) => r.adult === true)) adult++;
+      if (!results.length) failures.push(`${label}: no results`);
     } catch (err) {
-      failures.push(`${row.id} (${row.source.endpoint}) error: ${err.message}`);
-      console.log(`  [error] ${row.id} - ${err.message}`);
+      failures.push(`${label}: ${err.message}`);
     }
   }
+
+  for (const region of regions) {
+    console.log(`\n${region}: home rows`);
+    for (const row of config.catalogues) {
+      const label = `${region} row ${row.id}`;
+      if (row.source.list) {
+        checks++;
+        const ids = await mdblist.imdbIds(row.source.list, row.type, 0, 10).catch(() => []);
+        if (!ids.length) failures.push(`${label}: list returned no items`);
+        continue;
+      }
+      const parts = row.source.mix || [row.source];
+      for (const [i, part] of parts.entries()) {
+        if (row.source.mix && weightFor(part, region) === 0) continue;
+        const params = resolveParams(part.params || {}, { region });
+        if (hasUnavailable(params)) continue; // row is not offered in this region
+        await feed(row.source.mix ? `${label} (part ${i + 1})` : label, part.endpoint, params);
+      }
+    }
+
+    const { folders } = regionFolders(region);
+    console.log(`${region}: ${folders.size} collection folders`);
+    const tabs = [...folders.values()].flatMap((f) => f.types.map((type) => ({ f, type })));
+    await mapWithConcurrency(tabs, 6, async ({ f, type }) => {
+      checks++;
+      const label = `${region} folder ${f.collectionId}/${f.key} (${type})`;
+      try {
+        const page = await folderPage(client, f.sources[type], type, 0, 20, { mdblist });
+        const n = (page.items || page.imdbIds || []).length;
+        if (!n) failures.push(`${label}: empty`);
+        if ((page.items || []).some((it) => it.adult === true)) adult++;
+      } catch (err) {
+        failures.push(`${label}: ${err.message}`);
+      }
+    });
+  }
+
+  // Image paths kept in data/: brand logos and director portraits.
+  const paths = new Set();
+  for (const b of Object.values(PROVIDERS.brands)) if (b.logo) paths.add(b.logo);
+  for (const c of PACK.collections) {
+    for (const f of c.folders) {
+      if (f.logo) paths.add(f.logo);
+      if (f.portrait) paths.add(f.portrait);
+    }
+  }
+  console.log(`\nimage paths: ${paths.size}`);
+  await mapWithConcurrency([...paths], 8, async (p) => {
+    checks++;
+    try {
+      const res = await fetch(`https://image.tmdb.org/t/p/w92${p}`, { method: 'HEAD', signal: AbortSignal.timeout(8000) });
+      if (!res.ok) failures.push(`image ${p}: HTTP ${res.status}`);
+    } catch (err) {
+      failures.push(`image ${p}: ${err.message}`);
+    }
+  });
 
   console.log('');
-  if (adultSeen > 0) {
-    console.warn(
-      `WARNING: ${adultSeen} row(s) returned an adult-flagged item from TMDB; the mapper filters these, but review the row params.`
-    );
+  if (adult) {
+    console.warn(`WARNING: ${adult} feed(s) returned an adult-flagged item; the mapper filters these, but review the params.`);
   }
   if (failures.length) {
-    console.error(`\nPing FAILED (${failures.length} issues):`);
-    for (const f of failures) console.error(`  - ${f}`);
+    console.error(`Ping FAILED, ${failures.length} of ${checks} checks:`);
+    for (const f of failures.sort()) console.error(`  - ${f}`);
     process.exit(1);
   }
-  console.log(`All ${config.catalogues.length} catalogue rows healthy.`);
+  console.log(`All ${checks} checks passed for ${regions.join(', ')}.`);
   process.exit(0);
 }
 

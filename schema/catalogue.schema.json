@@ -86,7 +86,7 @@
         "activeWhen": {
           "type": "object",
           "additionalProperties": false,
-          "description": "Optional time-window in which this row appears at all (UTC). Omit for always-on.",
+          "description": "Optional time-window in which this row appears at all, in the edition's local time (timeZones in data/providers.json; UTC when a region has none). Omit for always-on.",
           "properties": {
             "months": { "type": "array", "items": { "type": "integer", "minimum": 1, "maximum": 12 } },
             "weekdays": { "type": "array", "items": { "type": "integer", "minimum": 0, "maximum": 6 } },
@@ -119,10 +119,27 @@
           "type": "string",
           "enum": ["poster", "landscape", "square"]
         },
+        "art": {
+          "type": "string",
+          "enum": ["tile", "rank", "poster"],
+          "description": "Artwork style. tile (default): generated 16:9 tiles with the title logo. rank: Top 10 tiles with a giant outlined rank numeral. poster: plain TMDB posters."
+        },
+        "pageSize": {
+          "type": "integer",
+          "minimum": 5,
+          "maximum": 100,
+          "description": "Items per page. Sent to Nuvio as the catalog pageSize so the client pages in the same step."
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500,
+          "description": "Hard cap on the total number of items in the row (e.g. 10 for a Top 10 row)."
+        },
         "source": {
           "type": "object",
           "additionalProperties": false,
-          "description": "Where the row's items come from: either a TMDB endpoint, or an MDBList public-list JSON URL (keyless). Exactly one of endpoint/list is required.",
+          "description": "Where the row's items come from: a TMDB endpoint, a weighted mix of TMDB endpoints (e.g. worldwide plus Indian titles), or an MDBList public-list JSON URL (keyless). Exactly one of endpoint/mix/list is required.",
           "properties": {
             "endpoint": {
               "type": "string",
@@ -136,13 +153,33 @@
                 "type": ["string", "number", "boolean"]
               }
             },
+            "mix": {
+              "type": "array",
+              "minItems": 1,
+              "description": "Weighted blend of TMDB feeds, interleaved on every page. Used to mix Indian movies and series into general rows.",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["endpoint"],
+                "properties": {
+                  "endpoint": { "type": "string", "pattern": "^/.+" },
+                  "params": { "type": "object", "additionalProperties": { "type": ["string", "number", "boolean"] } },
+                  "weight": { "type": "integer", "minimum": 0 },
+                  "weightBy": {
+                    "type": "object",
+                    "description": "Whole-number weight per region code, plus _default, e.g. {\"IN\": 2, \"_default\": 1}.",
+                    "additionalProperties": { "type": "integer", "minimum": 0 }
+                  }
+                }
+              }
+            },
             "list": {
               "type": "string",
               "pattern": "^https?://",
               "description": "A public MDBList list JSON URL (keyless), e.g. https://mdblist.com/lists/<user>/<slug>/json. Items carry imdb_id; metadata is enriched from TMDB."
             }
           },
-          "oneOf": [{ "required": ["endpoint"] }, { "required": ["list"] }]
+          "oneOf": [{ "required": ["endpoint"] }, { "required": ["mix"] }, { "required": ["list"] }]
         },
         "extra": {
           "type": "array",

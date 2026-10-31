@@ -1,235 +1,347 @@
-# Golden Catalogue — one addon for a tidy Nuvio / Stremio home
+# Golden Catalogue
 
 [![CI](https://github.com/0x8e8fb-p/nuvio-golden-catalogue/actions/workflows/ci.yml/badge.svg)](https://github.com/0x8e8fb-p/nuvio-golden-catalogue/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
-A single, well-organised catalogue for [Nuvio](https://github.com/haaihond/Nuvio-Wiki) and any
-Stremio-compatible client. Paste **one manifest URL** once and your home screen gains a set of cleanly
-named, deliberately ordered rows — trending, popular, new & top-rated, by genre, by streaming service,
-by decade, anime, documentaries, kids & family, many regional languages, studios, franchises and
-themes — instead of a pile of mismatched catalogues.
+Golden Catalogue is a Stremio-protocol catalogue addon built for Nuvio on Android TV. It also works in Stremio. This README covers version 3.0.0.
 
-Because a single Stremio manifest is capped at 8KB (~75 rows), the full catalogue (80+ rows) is also
-split into **presets** — themed, lean manifests you mix and match. Install as many as you like.
+- Metadata only. The addon lists movies and shows with IMDb (`tt`) ids, and your own stream addons handle playback.
+- No adult content. Every TMDB request sets `include_adult=false`, and adult-flagged items are dropped.
+- Data comes from TMDB.
+- Users need no API key in Nuvio. The only key is the deployer's own free TMDB key, set on the server.
 
-Everything is driven by **one config file** (`data/catalogue.config.json`). Edit that one file to
-rename, reorder, add or remove rows. No code changes.
+What it adds to Nuvio:
 
-> **This addon provides catalogue _metadata_ only** (titles, posters, backgrounds, ratings, grouping).
-> It emits IMDB (`tt`) ids, so your existing Nuvio/Stremio metadata and **stream** addons handle detail
-> pages and playback exactly as before. It contains **no stream scraper and no piracy resolver**, and it
-> excludes 18+/adult content everywhere.
+- Home rows: Top 10 rows with rank tiles, trending, streaming, Indian cinema, genre, anime and curated rows, and rows that follow the local clock.
+- Golden Collections: 17 collections with about 200 folders, imported into Nuvio TV from one URL.
+- Generated artwork: 16:9 title tiles, Top 10 tiles, folder covers and logos, animated focus loops and poster-wall hero backdrops.
+- Region editions for any country code, with streaming rows and folders that match what the country offers.
+- Indian and worldwide titles blended in general rows and folders.
 
----
+## Install in Nuvio
 
-## About "animations / GIFs"
+You need a deployment first (see [Deploy on Vercel](#deploy-on-vercel)). Below, replace `<domain>` with its production domain and `IN` with your country code.
 
-A Stremio/Nuvio catalogue addon sends **data** (JSON with image URLs). It **cannot** ship UI animations
-or animated artwork — motion is owned by the Nuvio/Stremio app, and the official clients render
-posters and backgrounds as **still images**. So this project delivers rich *static* polish instead:
+1. Open the landing page at `https://<domain>/` and pick your country. It shows the links below with Copy buttons. For a country that is not in the list, change the code in the links.
+2. Add the addon. In Nuvio, open Settings > Addons > Add Addon and paste `https://<domain>/r/IN/manifest.json`. For the default region, `https://<domain>/manifest.json` also works.
+3. Import the collections. In Nuvio TV, open Settings > Content & Discovery > Collections > Import > URL and paste `https://<domain>/r/IN/collections.json`. Use the same country code as the addon, because the pack points at that edition. Collection and folder ids are stable, so importing the URL again later updates the pack in place instead of duplicating it. Optional: on a TV with Android 8 or older, Nuvio cannot animate WebP and shows a still frame, so import `https://<domain>/r/IN/collections.json?focus=gif` instead to get GIF focus loops. Both URLs give the same collections with the same ids, so importing the other URL later switches either way.
+4. Move Golden Catalogue to the top of the list in Settings > Addons, so its artwork is used for the home screen hero. A metadata addon above it, for example Cinemeta, can replace the hero background and logo. Nuvio's search suggestions while typing come only from the first addon in this list with a search catalog, so at the top Golden Catalogue supplies them (full search results come from every addon with a search catalog).
 
-- high-resolution posters and 16:9 backdrops from TMDB,
-- optional **ratings badges baked onto posters** via [RPDB](https://ratingposterdb.com) (free-tier keys exist),
-- optional transparent **clearlogos** on detail pages via [fanart.tv](https://fanart.tv),
-- clean descriptions, release years, and a tight, grouped row order.
+In Stremio, install the same manifest URL or use the Stremio link on the landing page. Collections are a Nuvio feature, so Stremio gets the rows and search.
 
-If you were promised animated posters elsewhere — that isn't achievable through the addon protocol.
+## Region editions
 
----
+Each country has an edition at `/r/<CC>/manifest.json`, where `<CC>` is any two-letter country code. A full edition carries the featured home rows, search, and the catalogs behind the collection folders.
 
-## What's inside
+- US, IN, GB, CA, AU and DE have full streaming-provider tables in [data/providers.json](./data/providers.json). Any other code uses a default table with Netflix, Disney+ and Apple TV.
+- `/manifest.json` is the default edition. It uses the `DEFAULT_REGION` env var (US if unset) and keeps the plain addon id `com.nuvio.golden.catalogue`, so it is the same addon as `/r/<DEFAULT_REGION>/manifest.json`. Other regions get ids like `com.nuvio.golden.catalogue.in` and names like "Golden Catalogue IN".
+- Rows and folders for services a country lacks are left out. The India edition has no On Disney+ or On HBO Max row and no Hulu folder. The US edition has no On JioHotstar or On aha row.
 
-- **Time-aware rows** that reshape by the clock and calendar with no per-user data: a "Good
-  {morning/evening}" pick, weeknight quick-watches vs weekend epics, late-night and Sunday-morning
-  moods, and rows that only appear in their season. The manifest re-evaluates per request.
-- **Runtime-budget rows**: Under 90 Minutes, One Sitting, Epics (150m+), via TMDB runtime filters.
-- **Deterministic daily rotation**: "Today's Picks", "Hidden Gems" and "A Decade Ago" are seeded by
-  the date, so they're stable within a day and refresh each day.
-- **On This Week in Film History**: spotlights films from this calendar week in a past year, rotating.
-- **Mood clusters**: Mind Benders, Cozy Rainy Day, Pure Adrenaline, built from keyword/genre blends.
-- **80+ base catalogue rows** across movies, series, streaming services, decades, genres, anime,
-  documentaries, kids, many regional languages, networks, studios, franchises, themes, seasonal,
-  curated editorial lists, and keyless community lists (IMDb Top 250 and any public MDBList URL).
-- **Presets + region routing** so the catalogue scales past Stremio's 8KB manifest cap.
-- **Full detail pages** built from TMDB: cast, director, writer, trailers, genres, runtime, and the
-  complete episode list for series — layered with Cinemeta, not dependent on it.
-- **Optional enrichment**: RPDB ratings badges on posters, fanart.tv clearlogos, and AniList scores
-  and genres for anime (all opt-in, all degrade gracefully).
-- **Resilient by design**: a bounded TTL + LRU cache, a circuit breaker, and a 7-day stale-on-error
-  store, so a TMDB outage serves last-known-good data instead of an empty row. Metrics on `/health`.
-- **Interactive `/configure` page** to pick a region and presets and copy your install URLs.
-- **One golden config file**, JSON-Schema-validated, with a CI guard that keeps the default
-  manifest under 8KB even at peak time-aware activity.
+Time-aware rows follow the region's local clock:
 
-## Install
+| Region | Time zone |
+|---|---|
+| US | America/New_York |
+| IN | Asia/Kolkata |
+| GB | Europe/London |
+| CA | America/Toronto |
+| AU | Australia/Sydney |
+| DE | Europe/Berlin |
+| Any other code | UTC |
 
-If a Golden Catalogue instance is already deployed, open its landing page (the root URL) to see
-one-click install buttons for the full catalogue and every preset. Or paste a manifest URL directly
-into **Nuvio → Settings → Addons → Add Addon**:
+Nuvio caches installed manifests for up to 6 hours, so hour-based rows appear and disappear at approximate times.
 
-```
-https://YOUR-DEPLOYMENT.vercel.app/manifest.json          # curated default (40 rows)
-https://YOUR-DEPLOYMENT.vercel.app/c/anime/manifest.json  # a single preset
-https://YOUR-DEPLOYMENT.vercel.app/r/IN/c/streaming/manifest.json  # preset, region-scoped
-```
+## Home rows
 
-One-click (desktop/mobile apps that register the `stremio://` scheme — note GitHub won't make this
-clickable, so copy it into your browser's address bar):
+[data/catalogue.config.json](./data/catalogue.config.json) defines 33 rows. 31 are featured and make up the full editions. The other 2, Best of the 90s and On This Week in Film History, have `"featured": false` and appear only in the Curated preset. Each edition then drops the streaming rows its country lacks, so the US and India editions show up to 29 rows.
 
-```
-stremio://YOUR-DEPLOYMENT.vercel.app/manifest.json
-```
+| Group | Rows |
+|---|---|
+| Spotlight | Top 10 Movies Today, Top 10 Shows Today, Trending Movies, Trending Shows, New on Streaming, In Theaters |
+| For Right Now | Tonight's Pick, Weekend Epics |
+| Indian Cinema | Indian Blockbusters, Indian Web Series, South Indian Cinema, Bollywood |
+| Streaming | On Netflix, On Prime Video, On JioHotstar, On Disney+, On HBO Max, On aha |
+| Genres | Action and Thrillers, Comedy, Crime Dramas, Sci-Fi and Fantasy, Family Night, Horror, Documentaries |
+| Anime, World | Anime, Korean Dramas |
+| Curated | Critically Acclaimed, Hidden Gems, Binge-Worthy Series, IMDb Top 250 |
+| Decades (Curated preset only) | Best of the 90s, On This Week in Film History |
 
-### Presets — the full catalogue without the 8KB limit
+On screen, the two Top 10 rows come first, then Tonight's Pick and Weekend Epics, then the other rows in table order.
 
-A single Stremio manifest is capped at 8KB (~75 rows). The full catalogue is 80+ rows, so it is also
-split into themed **presets** you mix and match. Each is a lean, independent manifest:
+- Top 10 Movies Today and Top 10 Shows Today show 10 rank tiles with big outlined numerals.
+- Tonight's Pick appears from 17:00 to 23:59 local time and is titled "Good Evening" for that whole window.
+- Weekend Epics appears Friday to Sunday and lists films of 140 minutes or longer.
+- Hidden Gems, Tonight's Pick and Weekend Epics rotate daily. Each starts at a different point in its list every day. The day is the edition's local day, not the UTC day.
+- New on Streaming lists films from the last 90 days on the region's major services. In Theaters uses TMDB's now-playing list for the region.
+- IMDb Top 250 comes from a public MDBList list.
 
-`movies`, `series`, `streaming`, `anime`, `docs`, `kids`, `decades`, `regional`, `networks`,
-`studios`, `franchises`, `themes`, `seasonal`, `curated`, `lists`, `now`, `runtime`, `discovery`,
-`onthisday`.
+## Indian and worldwide blend
 
-- Install URL: `…/c/<preset>/manifest.json`
-- Region-scoped (for accurate "streaming now" rows in your country):
-  `…/r/<CC>/c/<preset>/manifest.json` where `<CC>` is a 2-letter country code (e.g. `IN`, `GB`, `US`).
-- `GET …/presets.json` returns the machine-readable preset list; `GET …/health` reports service status.
+General rows and folders interleave a worldwide feed and an Indian feed by weighted round robin.
 
-> **Tip (Nuvio):** metadata addons are processed top-to-bottom. Keep Golden Catalogue high in your
-> addon list so its rows load promptly.
+| Edition | Worldwide to Indian |
+|---|---|
+| India (IN) | 1 to 1 |
+| Every other region | 3 to 1. The Horror row uses 4 to 1 and the Hidden Gems row 2 to 1. |
 
----
+- Each part of a row's `"mix"` in data/catalogue.config.json sets its weight per region with `"weightBy"`, for example `{ "IN": 1, "_default": 3 }`, or as a fixed `"weight"`. Weights are whole numbers. Each row lists its Indian languages in its own params. Most use Hindi, Telugu, Tamil, Malayalam and Kannada, and show rows match origin country IN. The Top 10 rows blend only in the India edition. Elsewhere they show TMDB's daily trending list.
+- Folders get an Indian feed automatically: the same filters, limited to Hindi, Telugu, Tamil, Malayalam, Kannada, Bengali, Marathi, Punjabi and Gujarati, with a lower vote floor. The weights come from `"indiaMix"` in data/providers.json. This applies to genre, keyword, discover and mood folders. A folder in data/collections.json can set its own `"indiaMix": [3, 1]` or turn blending off with `"indiaMix": false`.
+- Search in Nuvio keeps TMDB's first 10 results in order, then lists the Indian-language matches among results 11 to 40 ahead of the rest.
 
-## Deploy your own (about 5 minutes, free)
+## Golden Collections
+
+The pack has 17 collections and about 200 folders per region: 200 in the US, 201 in India, 198 in GB, AU and DE, 197 in CA and 194 for any other country. Get it from `/r/<CC>/collections.json`, or `/collections.json` for the default region. Folders are defined in [data/collections.json](./data/collections.json).
+
+| Collection | Tile shape | Folders | Examples |
+|---|---|---|---|
+| Spotlight | LANDSCAPE | 5 | Trending Now, Trending in India, New Releases, Coming Soon, Top Rated |
+| Streaming | LANDSCAPE | 14, filtered by country | Netflix, Prime Video, JioHotstar, Disney+, HBO Max, Sun NXT |
+| Indian Cinema | SQUARE | 11 | Telugu, Hindi, Tamil, Malayalam, Pan-India Blockbusters, Indian Web Series |
+| Originals | LANDSCAPE | 11 | Netflix Originals, HBO Originals, JioHotstar Specials, BBC Originals |
+| Genres | POSTER | 19 | Action, Comedy, Thriller, Science Fiction, Kids, Reality |
+| Indian Studios | LANDSCAPE | 9 | Hombale Films, Mythri Movie Makers, Yash Raj Films, Lyca Productions |
+| Franchises | LANDSCAPE | 27 | Harry Potter, Star Wars, James Bond, Mission: Impossible, John Wick |
+| Indian Franchises | LANDSCAPE | 14 | Baahubali, K.G.F, Pushpa, Kantara, Drishyam, Golmaal |
+| Universes | LANDSCAPE | 7 | Marvel Cinematic Universe, MonsterVerse, Lokesh Cinematic Universe, Cop Universe, YRF Spy Universe, The Conjuring Universe, DC |
+| Directors | POSTER | 24 | Christopher Nolan, S. S. Rajamouli, Mani Ratnam, Steven Spielberg, Hayao Miyazaki, Bong Joon Ho |
+| Anime | LANDSCAPE | 12 | Popular Anime, Airing This Season, Isekai, Crunchyroll, Studio Ghibli |
+| Studios | LANDSCAPE | 10 | Marvel Studios, Pixar, A24, Lucasfilm, Blumhouse |
+| Moods | POSTER | 15 | Mind-Bending, Feel-Good, Edge of Your Seat, Heists, Time Travel |
+| Curated | LANDSCAPE | 7 | IMDb Top 250, Most Watched This Week, Critically Acclaimed, Highest Grossing |
+| World Cinema | SQUARE | 10 | Korean, Japanese, Spanish, French, Turkish |
+| Decades | SQUARE | 8 | 2020s, 2010s, 1990s, 1960s, Golden Age |
+| By Runtime | LANDSCAPE | 3 | Under 90 Minutes, One Sitting, Epic Length |
+
+- The table follows the India edition's order. Other editions move Indian Cinema, Indian Franchises and Indian Studios further down (`"regionOrder"` in data/collections.json).
+- Each folder has Movies and Shows tabs where both exist. Franchise and director folders are movies only, as are several studio, universe and genre folders. Originals folders are shows only.
+- Directors folders list only films the person directed.
+- Streaming folders follow what the country offers: 8 in the US, 9 in India, 6 in GB, AU and DE, 5 in CA and 3 elsewhere.
+- If a user turns on Nuvio's Hide Unreleased Content setting (off by default), the Coming Soon folder can be empty.
+- Folders reach the addon through two search-only catalogs, `gc-movie` (named Movies) and `gc-series` (named Shows). Nuvio never shows search-only catalogs on Home or in Discover, so they add no clutter. The same two catalogs serve Nuvio's search.
+- Each folder tab is a source `{ provider: "addon", addonId, type, catalogId: "gc-movie,<folder-id>" }`, or `"gc-series,<folder-id>"` for shows, with no genre. Nuvio resolves a source's catalog by the part before the first comma, so the tab uses the declared `gc-movie` or `gc-series` catalog: 40 titles per page, paging with `skip`, and the catalog name, Movies or Shows, as the tab label. The region comes from the edition the addon was installed from.
+- Packs imported earlier name the folder in the genre extra instead, for example `genre=IN.netflix`. That form still works.
+
+## Generated artwork
+
+The server renders artwork with sharp and the Bebas Neue font. Complete images carry long cache headers (30 days at the CDN for item art, 1 day plus a week of stale-while-revalidate for folder art), so Vercel's CDN serves repeat requests. An image drawn after an input failed to load (a download or a TMDB lookup) is sent with `Cache-Control: public, max-age=60, s-maxage=300` and is not kept in memory, so it is tried again soon. Catalog pages built after a TMDB failure carry no cache headers.
+
+| Artwork | Size | Content |
+|---|---|---|
+| Title tile | 960x540 JPEG | Backdrop with the title's logo, or the title set in Bebas Neue when there is no logo. A title without a backdrop gets a poster layout: the poster blurred and darkened as the background, the poster as a rounded card on the right, and the logo or title on the left. This keeps many Indian titles in rows and folders. |
+| Top 10 tile | 960x540 JPEG | Poster over a blurred backdrop, with a big outlined rank numeral |
+| Folder cover | 640x360 (LANDSCAPE), 405x600 (POSTER), 600x600 (SQUARE) JPEG | Drawn at the shape of the folder's tile, because Nuvio stretches images to the tile. A POSTER tile is 0.675 wide per unit of height. Streaming services, networks and studios show their logo, directors their portrait, and categories their name. Folder tiles hide their text, because the cover already shows the name or logo. |
+| Focus loop | 416x234 (LANDSCAPE), 243x360 (POSTER), 300x300 (SQUARE) animated WebP, about 70 to 140 KB | Plays when a folder is focused |
+| Hero backdrop | 1920x1080 JPEG | Poster wall built from the folder's titles |
+| Folder logo | Transparent PNG, up to 1200x480 | The brand logo, with dark logos turned white and the dark parts of two-tone logos lifted, or the folder name set in Bebas Neue. The pack links it as the folder's `titleLogoUrl`, and Nuvio shows it on the home hero when the folder is focused. |
+
+- Logos: a title tile uses the English logo first, then one in the title's original language, then one without a language. Indian films therefore show their English or original-language logo.
+- Focus loops: Nuvio animates WebP on Android 9 and newer. Older TVs show a still frame. A GIF version, about 400 to 550 KB, is served at the same path, with `focus.gif` in place of `focus.webp`. It has one crossfade frame between pictures instead of four, and no dithering.
+- GIF edition: `/r/<CC>/collections.json?focus=gif`, or `/collections.json?focus=gif` for the default region, is the same pack with folders that link `focus.gif` instead of `focus.webp`. It is for TVs on Android 8 or older. Importing it replaces the same collections, because the ids do not change, so a user can switch either way by importing the other URL. The landing page shows both links.
+- Paths: item art is served from `/art/tile.jpg`, `/art/rank.jpg` and `/art/logo.png`. Folder art is served from `/art/folder/<CC>/<folder-id>/` as `cover.jpg`, `focus.webp`, `focus.gif`, `hero.jpg` and `logo.png`. A folder art URL with unknown query parameters or an invalid shape redirects (301) to the canonical URL.
+- Signing: item art URLs carry an HMAC signature keyed with `ART_SECRET`, or with a secret derived from `TMDB_API_KEY`, so the deployment cannot be used as a free image service. A bad signature gets HTTP 403. Folder art URLs are not signed, so imported packs keep working if the secret changes.
+- `ART_MODE=posters` turns off generated title tiles, Top 10 tiles and title logos. Rows then use plain TMDB backdrops and posters. Folder art in the pack is still generated.
+
+## Themed presets
+
+Presets are optional, smaller addons with one theme each, for example for a second profile. Install one from `/r/<CC>/c/<preset>/manifest.json`, or `/c/<preset>/manifest.json` for the default region. The landing page lists them with copy links, and [src/presets.js](./src/presets.js) defines them.
+
+| Preset | Name | Row groups | v2 slugs that map to it |
+|---|---|---|---|
+| `spotlight` | Spotlight | Spotlight, For Right Now | `movies`, `series`, `now`, `discovery`, `seasonal` |
+| `indian` | Indian Cinema | Indian Cinema | `regional` |
+| `streaming` | Streaming | Streaming | `networks`, `studios` |
+| `genres` | Genres | Genres | `docs`, `kids`, `themes`, `runtime` |
+| `world` | Anime and World | Anime, World | `anime` |
+| `curated` | Curated | Curated, Decades | `franchises`, `lists`, `decades`, `onthisday` |
+
+Presets include rows set to `"featured": false`. They carry rows only, so search and the collection folders still need the full edition. `/configure`, the v2 configure page, now redirects to the landing page.
+
+Each preset installs as its own addon. At `/c/<preset>/` its id is `com.nuvio.golden.catalogue.<preset>`. At `/r/<CC>/c/<preset>/` it is `com.nuvio.golden.catalogue.<preset>.<cc>` for every country, including the default one.
+
+The 17 preset slugs removed after v2 still work, for example `/c/movies/manifest.json`. Each serves the closest current preset (last column above) and keeps the addon id it had in v2, so existing installs keep working. The landing page does not list them.
+
+## Endpoints
+
+| Path | Serves |
+|---|---|
+| `/` | Landing page: country picker, install links, presets |
+| `/manifest.json` | Default edition |
+| `/r/<CC>/manifest.json` | Region edition |
+| `/r/<CC>/collections.json` | Golden Collections pack for a region |
+| `/collections.json` | Golden Collections pack for the default region |
+| `/r/<CC>/collections.json?focus=gif` | GIF edition of a region's pack, for TVs on Android 8 or older |
+| `/collections.json?focus=gif` | GIF edition of the default region's pack |
+| `/r/<CC>/c/<preset>/manifest.json` | Preset in a region |
+| `/c/<preset>/manifest.json` | Preset in the default region |
+| `/presets.json` | Preset list with slug, name and row count |
+| `/health` | Status, version, region, row, preset and folder counts, whether a TMDB key is configured, the public origin, and cache and circuit-breaker stats. It never shows the key. `renderer` reports `ok` and `ms` from one tiny test render per process, which shows whether image rendering works on the host. |
+| `/art/...` | Generated artwork |
+| `/configure` | Redirect to the landing page |
+
+An invalid country code returns HTTP 400 and an unknown preset returns 404.
+
+## Deploy on Vercel
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/0x8e8fb-p/nuvio-golden-catalogue&env=TMDB_API_KEY&envDescription=Your%20free%20TMDB%20v3%20API%20key)
 
-You host your own copy so the TMDB key stays yours.
+1. Get a free TMDB key at [themoviedb.org/settings/api](https://www.themoviedb.org/settings/api). Copy the "API Key", which is 32 hex characters. The longer "API Read Access Token" does not work here.
+2. Import the GitHub repo into Vercel (Add New > Project), or use the Deploy button above. Leave the framework preset as Other. The first deploy works before the key is set.
+3. In Project > Settings > Environment Variables, set `TMDB_API_KEY` to that key. Optionally set `DEFAULT_REGION=IN` to make India the default edition.
+4. Redeploy from the Deployments tab. Environment variable changes only apply to new deployments.
+5. Find the production domain under Project > Settings > Domains, for example `<project>.vercel.app`, and use it in every install link. Deployment-specific URLs, the ones with a hash in them, sit behind Vercel Authentication, and a TV cannot open them.
+6. Open `https://<domain>/health` and check that `tmdbKeyConfigured` is `true` and `renderer.ok` is `true`. If `renderer.ok` is `false`, `renderer.error` names the failure.
 
-1. **Get a free TMDB API key** — sign up at <https://www.themoviedb.org/settings/api> and copy the
-   **API Key (v3 auth)**.
-2. **Fork this repo** (or click *Use this template*).
-3. **Deploy to Vercel:**
-   - Go to <https://vercel.com> → **Add New → Project** → import your fork.
-   - Framework preset: **Other**. Click **Deploy** (the first build will succeed even before the key is set).
-   - In **Project → Settings → Environment Variables**, add:
-     - `TMDB_API_KEY` = your key *(required)*
-     - `RPDB_API_KEY` = `t0-free-rpdb` *(optional — ratings badges on posters)*
-     - `FANART_API_KEY` = your fanart.tv key *(optional — clearlogos on detail pages)*
-   - **Redeploy** so the new env vars take effect.
-4. Your manifest URL is `https://<project>.vercel.app/manifest.json`. Paste it into Nuvio.
+Without a key the addon still installs, but every row is empty and the landing page shows a warning. Use Node 22 or newer on Vercel (Settings > Build and Deployment > Node.js Version). vercel.json rewrites every path to the Express app in api/index.js, and its `functions` block bundles the assets, data and schema folders with that function (`includeFiles`) and allows it up to 30 seconds per request (`maxDuration`). Any other Node host can run `npm start` with the same environment variables.
 
-Every push to `main` auto-deploys. CORS is handled by the addon router.
+## Environment variables
 
-### Alternative host
-The code uses the official `stremio-addon-sdk`. `src/index.js` runs a standalone server
-(`serveHTTP`) for local/VPS use; `api/index.js` + `vercel.json` adapt it for Vercel via `getRouter`.
-Any Node host (Render, a VPS, etc.) can run `npm start` with the env vars set. Cloudflare Workers/Deno
-would require rewriting the routes against the `fetch` model (the SDK is Node-based).
+Set these in Vercel under Project > Settings > Environment Variables, or in `.env` for local runs (see [.env.example](./.env.example)).
 
----
+| Variable | Default | Purpose |
+|---|---|---|
+| `TMDB_API_KEY` | none, required | TMDB v3 API Key (32 hex characters). Without it every row is empty. |
+| `DEFAULT_REGION` | `US` | Country used by `/manifest.json`, `/collections.json` and `/c/<preset>/manifest.json` |
+| `PUBLIC_BASE_URL` | the request's host | Public origin written into artwork and pack URLs, for example `https://tv.example.org`. Set it for a custom domain or a proxy. |
+| `TRUST_PROXY` | unset | `1` trusts `X-Forwarded-Host` and `X-Forwarded-Proto`. Set it when a proxy in front of a self-hosted server sets these headers. On Vercel they are trusted automatically. Without it the `Host` header is used. |
+| `ART_SECRET` | derived from `TMDB_API_KEY` | Secret for signing item art URLs. Changing it invalidates item art URLs issued before the change. A Vercel deployment with neither `ART_SECRET` nor `TMDB_API_KEY` signs with a random key per instance. |
+| `ART_MODE` | unset | `posters` turns off generated tiles, Top 10 tiles and title logos. Folder art is unaffected. |
+| `TMDB_LANGUAGE` | `en-US` | Language of TMDB metadata |
+| `RPDB_API_KEY` | unset | Rating-badge posters from RPDB. Applies to portrait posters only, such as search results. |
+| `FANART_API_KEY` | unset | fanart.tv clearlogos and backgrounds on detail pages |
+| `ENABLE_ANILIST` | unset | `1` adds AniList genres and scores to anime detail pages |
+| `PORT` | `7000` | Port of the local server |
+| `TMDB_API_BASE` | `https://api.themoviedb.org/3` | TMDB API host, for a mirror or a mock. If api.themoviedb.org is blocked on your network, as on some Indian ISPs, `https://api.tmdb.org/3` works for local runs. |
+| `TMDB_IMAGE_BASE` | `https://image.tmdb.org/t/p` | Host the art renderer downloads source images from, for a mirror or a mock |
+| `PING_REGIONS` | `IN,US` | Countries checked by `npm run ping:tmdb` |
 
-## Customise — the single golden config
+## Local development
 
-Open [`data/catalogue.config.json`](./data/catalogue.config.json). Each row looks like:
-
-```jsonc
-{
-  "id": "popular-movies",          // unique, kebab-case
-  "type": "movie",                 // movie | series
-  "name": "⭐ Popular Movies",      // the row title shown in Nuvio
-  "order": 12,                     // ascending — controls row position
-  "group": "Movies · Spotlight",  // human grouping only (not sent to Stremio)
-  "source": {
-    "endpoint": "/discover/movie", // any TMDB v3 path
-    "params": { "sort_by": "popularity.desc", "vote_count.gte": 100 }
-  },
-  "extra": [
-    { "name": "genre", "mapTo": { "param": "with_genres", "lookup": "tmdbGenreId" } },
-    { "name": "skip" }             // enables pagination
-  ]
-}
-```
-
-- **Reorder** a row: change its `order`.
-- **Rename** a row: change its `name` (keep labels plain — the lint step rejects emojis).
-- **Add** a row: copy a block, give it a unique `id`, point `source.endpoint`/`params` at the TMDB data you want.
-- **Community lists (keyless)**: instead of `source.endpoint`, set `source.list` to any public
-  MDBList list JSON URL (`https://mdblist.com/lists/<user>/<slug>/json`). MDBList aggregates IMDb,
-  Trakt and Letterboxd lists, and the items already carry IMDb ids, so curated rows like "IMDb Top
-  250" play through your stream addons. No API key needed.
-- **Default vs preset**: set `"featured": false` to keep a row out of the curated default manifest
-  (so it stays under 8KB) while still serving it via its preset. The row's `group` decides which
-  preset it belongs to.
-- **Region**: set `defaults.region` (or use the `/r/<CC>/…` URL) so `{{region}}` in a row's params
-  resolves to your country for watch-provider rows.
-- **Dynamic dates**: params support `{{now}}`, `{{now-90d}}`, `{{now+30d}}`, `{{year}}`, `{{year-N}}`,
-  `{{monthStart}}`, `{{yearStart}}`.
-- **Time-aware rows**: add `activeWhen` (`months`, `weekdays`, `hours`) so a row only appears at
-  certain times, and `dynamicName` (tokens `{partOfDay}`, `{year}`) for a title that changes by time.
-- **Daily rotation**: set `rotate: true` so the row is date-seeded — stable within a day, fresh daily.
-- **On this week**: set `window: "onThisWeek"` to spotlight films from this calendar week in a past year.
-- **Genre dropdowns**: add a `genre` extra; options come from [`data/genres.json`](./data/genres.json).
-- Validate before you deploy:
+Use Node 20.9 or newer (22 recommended).
 
 ```bash
-npm run validate:config
-```
-
-Invalid edits fail loudly (bad type, duplicate id, missing endpoint, unknown genre…), and CI blocks them.
-
----
-
-## Develop locally
-
-```bash
-cp .env.example .env     # add your TMDB_API_KEY
 npm install
-npm start                # http://127.0.0.1:7000/manifest.json
-npm test                 # unit + smoke tests (no network)
-npm run validate:config  # schema + semantic validation
-npm run ping:tmdb        # live canary: hits every row once (needs TMDB_API_KEY)
+TMDB_API_KEY=your_key npm start
 ```
 
----
+To keep settings in a file instead (`npm start` does not read `.env`):
 
-## Secrets
+```bash
+cp .env.example .env    # then set TMDB_API_KEY in .env
+node --env-file=.env src/index.js
+```
 
-- Keys live only in your **host env vars** (Vercel) and **GitHub Actions secrets** — never in the repo.
-- `.env` is gitignored; `.env.example` documents the variables.
-- `npm run lint` includes a secret scan; the nightly workflow's TMDB key is masked and is not exposed
-  to pull requests from forks (the ping skips gracefully when the key is absent).
+Open `http://127.0.0.1:7000/` for the landing page. The default manifest is at `http://127.0.0.1:7000/manifest.json`. To try it on a TV on the same network, install `http://<computer-ip>:7000/r/IN/manifest.json` in Nuvio. Artwork URLs use the host of each request, so they point at the same address.
 
----
+| Command | What it does |
+|---|---|
+| `npm start` | Starts the local server (`node src/index.js`). `npm run dev` does the same. |
+| `npm test` | Runs the unit and smoke tests with `node --test`. No TMDB key is needed. |
+| `npm run lint` | Syntax-checks every JS file, scans for committed secrets, rejects emojis in data, docs and code, and checks README links |
+| `npm run validate:config` | Validates data/catalogue.config.json against the schema, checks the 8KB manifest limit for every region edition, and checks data/collections.json: id format, unique ids, tile shapes, a feed for every folder, and a pack that builds for every region |
+| `npm run ping:tmdb` | Live canary for each country in `PING_REGIONS`: every row feed, every folder tab, and every logo and portrait path. Skips when `TMDB_API_KEY` is unset. |
+
+CI ([.github/workflows/ci.yml](./.github/workflows/ci.yml)) runs lint, validate:config and the tests with Node 24 on every push and pull request to master and main. A nightly workflow ([.github/workflows/nightly.yml](./.github/workflows/nightly.yml)) runs the live canary at 06:00 UTC with the `TMDB_API_KEY` repository secret.
+
+## Customising
+
+Behaviour is set in three data files. Run `npm run validate:config` after every edit. [CONTRIBUTING.md](./CONTRIBUTING.md) has worked examples.
+
+### Rows: data/catalogue.config.json
+
+Each row is validated against [schema/catalogue.schema.json](./schema/catalogue.schema.json).
+
+| Field | Meaning |
+|---|---|
+| `id` | Unique kebab-case id. It is also the catalog id in the manifest. |
+| `type` | `movie` or `series` |
+| `name` | Row title |
+| `order` | Position on the home screen, ascending |
+| `group` | The preset the row belongs to. Not sent to Nuvio. |
+| `source` | Exactly one of: `endpoint` with `params` (a TMDB v3 path), `mix` (a list of feeds, each with `endpoint`, `params`, and a fixed `weight` or a per-region `weightBy`, in whole numbers), or `list` (a public MDBList JSON URL) |
+| `art` | `tile` (default), `rank` or `poster` |
+| `limit` | Maximum number of items, for example 10 |
+| `pageSize` | Items per page, sent to Nuvio as the catalog page size |
+| `activeWhen` | `hours` as `[start, end]` local hours, inclusive (`[17, 23]` is 17:00 to 23:59), `weekdays` (0 is Sunday), `months` (1 to 12) |
+| `dynamicName` | Title template with `{partOfDay}` and `{year}`, for example `Good {partOfDay}` |
+| `rotate` | `true` moves the row's starting point every day |
+| `featured` | `false` keeps the row out of the full editions, so it appears only in its preset |
+| `window` | `onThisWeek` lists films released this calendar week in a past year |
+| `extra` | `[{ "name": "skip" }]` turns on paging |
+
+Template tokens in `params` values:
+
+| Token | Becomes |
+|---|---|
+| `{{region}}` | The edition's country code |
+| `{{providers}}` | TMDB provider ids of the region's major services |
+| `{{provider:netflix}}` | TMDB provider ids of one service in the region (any brand key in data/providers.json) |
+| `{{now}}` | Today's date, YYYY-MM-DD (UTC) |
+| `{{now-90d}}`, `{{now+30d}}` | A date that many days back or ahead |
+| `{{year}}` | The current year |
+| `{{year-10}}` | That many years back. Text may follow, as in `{{year-4}}-01-01`. |
+| `{{monthStart}}`, `{{yearStart}}` | The first day of the current month or year |
+
+Apart from `{{year-N}}`, a token must be the whole value. A row whose provider token has no ids in a region is left out of that region's manifest.
+
+### Collections: data/collections.json
+
+A collection has an `id`, a `title`, a `tileShape` (`POSTER`, `LANDSCAPE` or `SQUARE`) and `folders`. `"regionOrder"` sets the collection order per region. Each folder has an `id`, a `title` and one source field:
+
+| Source field | Feed |
+|---|---|
+| `provider` | A streaming service key from data/providers.json, filtered by region |
+| `network` | A TMDB network id (shows only) |
+| `company` | TMDB company ids. Separate several with a pipe to match any of them. |
+| `collection` | A TMDB collection id (movies only) |
+| `parts` | Several TMDB collections plus single films (movies only) |
+| `person` | A TMDB person id. Lists the films the person directed. |
+| `language` | An original-language code, for example `te` |
+| `list` | A public MDBList JSON URL, or one URL per type |
+| `genre` | A TMDB genre id per type |
+| `keyword` | TMDB keyword ids. Separate several with a pipe to match any of them. |
+| `discover` | Explicit TMDB discover params per type |
+| `trending` | TMDB's weekly trending titles |
+
+Optional folder fields: `types` (`["movie"]` or `["series"]`), `params` (extra TMDB params, ignored by `discover` and `trending` folders), `regions` (show only in these countries), `indiaMix` (`[worldwide, indian]` weights, or `false`), `tileShape`, `logo` (a TMDB logo path), `wordmark` (cover text in place of the title) and `portrait` (a TMDB photo path for director folders).
+
+### Regions: data/providers.json
+
+- `regions`: TMDB watch-provider ids per country for each brand key. `_default` is the table for countries not listed.
+- `brands`: name, TMDB network id and logo path for each streaming brand.
+- `regionNames`: names shown in the landing page's country picker.
+- `timeZones`: the clock for each region's time-aware rows.
+- `major`: the brands behind `{{providers}}`.
+- `indiaMix`: `[worldwide, indian]` folder weights per region.
 
 ## Project layout
 
+```text
+api/index.js           Express app and every route; the Vercel entry
+src/index.js           Local server
+src/addon.js           Builds the addon for an edition or preset
+src/manifest.js        Config to manifest: featured rows, region filter, search-only catalogs
+src/presets.js         Preset definitions
+src/landing.js         Landing page
+src/handlers/          catalog.js (rows, search, folders), meta.js (detail pages)
+src/collections/       engine.js (folders per region), pack.js (Nuvio pack), folder-feed.js (folder pages)
+src/art/               render, routes, sign, urls, fetch-image, logos, folder-art, sharp
+src/lib/               mix, region, schedule, templating, cache, circuit-breaker, request-context, config-loader
+src/tmdb/              TMDB client, mappers, detail pages
+src/sources/           mdblist.js, anilist.js
+src/images/fanart.js   fanart.tv logos for detail pages
+data/                  catalogue.config.json, collections.json, providers.json, genres.json
+schema/                catalogue.schema.json
+assets/fonts/          Bebas Neue and its licence
+scripts/               lint.js, validate-config.js, ping-tmdb.js
+tests/                 node --test suites
+vercel.json            Sends every path to api/index.js
+.github/workflows/     ci.yml, nightly.yml
 ```
-data/catalogue.config.json   # THE golden config — edit this
-data/genres.json             # TMDB genre-id lookup
-data/providers.json          # TMDB watch-provider id reference
-schema/catalogue.schema.json # JSON Schema the config is validated against
-src/manifest.js              # config -> Stremio manifest (featured filter, 8KB-aware)
-src/presets.js               # group -> lean preset manifests
-src/landing.js               # server-rendered install page
-src/lib/templating.js        # {{region}} / {{now-90d}} / {{year}} / {{year-N}} tokens
-src/lib/schedule.js          # time-aware activation, daily rotation, on-this-day
-src/lib/cache.js             # bounded TTL + LRU cache with metrics
-src/lib/circuit-breaker.js   # upstream outage protection
-src/handlers/catalog.js      # config row -> TMDB -> meta previews (core)
-src/handlers/meta.js         # full detail pages + optional enrichment
-src/tmdb/                     # TMDB client (cache, stale-on-error, breaker) + mappers + meta
-src/images/fanart.js         # optional clearlogo enrichment
-src/sources/anilist.js       # optional anime score/genre enrichment (keyless)
-src/sources/mdblist.js       # keyless public-list source (MDBList/Trakt/Letterboxd)
-src/configure.js             # interactive /configure page
-api/index.js + vercel.json   # Vercel entry (default + presets + /r/<CC> + /configure + /health)
-.github/workflows/           # CI + nightly canary
-```
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) to propose rows or changes.
+## Credits and licences
 
-## Credits & terms
-
-This product uses the **TMDB API** but is not endorsed or certified by
-[TMDB](https://www.themoviedb.org/). Rating badges by [RPDB](https://ratingposterdb.com); artwork by
-[fanart.tv](https://fanart.tv). Licensed under [MIT](./LICENSE).
+- This product uses the TMDB API but is not endorsed or certified by TMDB. Data and images come from [TMDB](https://www.themoviedb.org/).
+- Bebas Neue font by Dharma Type, under the SIL Open Font License 1.1 ([assets/fonts/OFL-BebasNeue.txt](./assets/fonts/OFL-BebasNeue.txt)).
+- Curated rows and folders use public [MDBList](https://mdblist.com) lists.
+- Optional services: rating posters from [RPDB](https://ratingposterdb.com), logos from [fanart.tv](https://fanart.tv) and anime data from [AniList](https://anilist.co).
+- Project licence: MIT ([LICENSE](./LICENSE)).

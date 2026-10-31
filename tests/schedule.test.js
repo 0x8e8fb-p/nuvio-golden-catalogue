@@ -2,7 +2,7 @@
 
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { isActive, rotationPage, onThisWeekWindow, resolveName } = require('../src/lib/schedule');
+const { isActive, rotationPage, onThisWeekWindow, resolveName, parts } = require('../src/lib/schedule');
 const { buildManifest } = require('../src/manifest');
 const { loadConfig } = require('../src/lib/config-loader');
 
@@ -63,17 +63,39 @@ test('resolveName applies partOfDay token', () => {
 
 test('manifest hides inactive time-aware rows and shows active ones', () => {
   const config = loadConfig({ fresh: true });
-  // Saturday noon: weekend-epic active, weeknight-short inactive, tonight inactive (hours 17-23).
-  const sat = buildManifest(config, { now: SAT_NOON, featuredOnly: false });
+  // Saturday noon UTC: the weekend row is on, the evening row (17-23) is off.
+  const sat = buildManifest(config, { now: SAT_NOON, featuredOnly: false, timeZone: 'UTC' });
   const ids = sat.catalogs.map((c) => c.id);
-  assert.ok(ids.includes('time-weekend-epic'), 'weekend row should show on Saturday');
-  assert.ok(!ids.includes('time-weeknight-short'), 'weeknight row should hide on Saturday');
+  assert.ok(ids.includes('weekend-epics'), 'weekend row should show on Saturday');
+  assert.ok(!ids.includes('tonight'), 'evening row should hide at noon');
+  // Monday evening: the reverse.
+  const mon = buildManifest(config, { now: MON_EVENING, featuredOnly: false, timeZone: 'UTC' });
+  const monIds = mon.catalogs.map((c) => c.id);
+  assert.ok(monIds.includes('tonight'));
+  assert.ok(!monIds.includes('weekend-epics'), 'weekend row should hide on Monday');
 });
 
 test('manifest uses dynamic name for the tonight row when active', () => {
   const config = loadConfig({ fresh: true });
-  const m = buildManifest(config, { now: MON_EVENING, featuredOnly: false });
-  const tonight = m.catalogs.find((c) => c.id === 'time-tonight');
+  const m = buildManifest(config, { now: MON_EVENING, featuredOnly: false, timeZone: 'UTC' });
+  const tonight = m.catalogs.find((c) => c.id === 'tonight');
   assert.ok(tonight, 'tonight row active Monday evening');
   assert.equal(tonight.name, 'Good Evening');
+});
+
+test('time-aware rows follow the edition clock (India is UTC+5:30)', () => {
+  // 13:00 UTC is 18:30 in India: evening there, early afternoon in London.
+  const t = Date.UTC(2026, 5, 15, 13, 0, 0);
+  const row = { name: 'x', dynamicName: 'Good {partOfDay}', activeWhen: { hours: [17, 23] } };
+  assert.equal(isActive(row, t, 'Asia/Kolkata'), true);
+  assert.equal(isActive(row, t, 'Europe/London'), false);
+  assert.equal(resolveName(row, t, 'Asia/Kolkata'), 'Good Evening');
+  // Saturday 20:00 UTC is already Sunday 01:30 in India.
+  const p = parts(Date.UTC(2026, 5, 13, 20, 0, 0), 'Asia/Kolkata');
+  assert.deepEqual([p.weekday, p.hour, p.date], [0, 1, 14]);
+});
+
+test('an unknown time zone falls back to UTC', () => {
+  const p = parts(MON_EVENING, 'Mars/Olympus');
+  assert.deepEqual([p.weekday, p.hour], [1, 20]);
 });

@@ -62,12 +62,16 @@ if (errors) {
   process.exit(1);
 }
 
-// 3. No-slop guard: reject emojis in the config row names and source files.
-//    Keeps catalogue labels and code clean and professional.
+// 3. No-slop guard: reject emojis in data files, docs and source files.
+//    Keeps catalogue labels, collection titles and code clean and professional.
 const EMOJI_RE = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{1F1E6}-\u{1F1FF}]/u;
-const slopTargets = [path.join(ROOT, 'data', 'catalogue.config.json')].concat(
-  DIRS.flatMap((d) => walk(path.join(ROOT, d)))
-);
+const dataFiles = fs
+  .readdirSync(path.join(ROOT, 'data'))
+  .filter((f) => f.endsWith('.json'))
+  .map((f) => path.join(ROOT, 'data', f));
+const slopTargets = dataFiles
+  .concat(['README.md', 'CONTRIBUTING.md'].map((f) => path.join(ROOT, f)))
+  .concat(DIRS.flatMap((d) => walk(path.join(ROOT, d))));
 for (const file of slopTargets) {
   if (!fs.existsSync(file)) continue;
   const text = fs.readFileSync(file, 'utf8');

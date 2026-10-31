@@ -1,7 +1,7 @@
 {
   "name": "nuvio-golden-catalogue",
-  "version": "1.0.0",
-  "description": "A single golden Stremio/Nuvio catalogue addon: one manifest URL, a fully organised catalogue across movies, series, anime, documentaries, kids, regional, networks and franchises — driven by one editable config.",
+  "version": "3.0.0",
+  "description": "Golden Catalogue for Nuvio and Stremio: region-aware home rows, Top 10 rank tiles, generated artwork and an importable collections pack, with Indian and worldwide titles blended. Metadata only.",
   "type": "commonjs",
   "main": "src/index.js",
   "scripts": {
@@ -13,12 +13,13 @@
     "lint": "node scripts/lint.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20.9.0"
   },
   "dependencies": {
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "express": "^4.21.2",
+    "sharp": "^0.35.5",
     "stremio-addon-sdk": "^1.6.10"
   },
   "keywords": [

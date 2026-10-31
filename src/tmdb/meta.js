@@ -14,6 +14,7 @@
  */
 
 const { posterUrl, backdropUrl } = require('./client');
+const { artEnabled, logoUrl } = require('../art/urls');
 
 const YT = (key) => ({ source: key, type: 'Trailer' });
 
@@ -142,6 +143,12 @@ async function buildMeta(client, imdbId, type) {
         : undefined,
     cast: creditNames(detail.credits, 'cast', 10),
   };
+
+  // Same transparent title logo as the catalog tile (redirects to TMDB, 404s
+  // cleanly when a title has none, and Nuvio then shows the title text).
+  if (artEnabled()) {
+    meta.logo = logoUrl({ type, tmdbId, lang: detail.original_language });
+  }
 
   const directors = crewByJob(detail.credits, 'Director', 3);
   if (directors.length) meta.director = directors;

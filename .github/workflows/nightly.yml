@@ -16,15 +16,15 @@ concurrency:
 jobs:
   canary:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
       - run: npm ci
-      - name: Validate golden config (no network)
+      - name: Validate config and collections (no network)
         run: npm run validate:config
       - name: Live TMDB ping
         # Secrets are masked in logs and are NOT exposed to workflows triggered

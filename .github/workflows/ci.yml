@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [master, main]
   pull_request:
-    branches: [main]
+    branches: [master, main]
 
 jobs:
   test:
@@ -13,12 +13,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
       - run: npm ci
-      - name: Lint (syntax + secret scan)
+      - name: Lint (syntax, secret scan, no-emoji check, README links)
         run: npm run lint
-      - name: Validate golden config (no network)
+      - name: Validate config and collections (no network)
         run: npm run validate:config
       - name: Unit tests
         run: npm test

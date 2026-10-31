@@ -8,6 +8,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { createTmdbClient, posterUrl, backdropUrl } = require('../src/tmdb/client');
 const { toMetaPreviews, _imdbCache } = require('../src/tmdb/mappers');
+const { runWithOrigin } = require('../src/lib/request-context');
 
 // A fake fetch that serves external_ids per TMDB id.
 function fakeFetch(externalIds) {
@@ -130,4 +131,32 @@ test('empty / null results resolve to empty array', async () => {
   const c = client({});
   assert.deepEqual(await toMetaPreviews(c, [], { stremioType: 'movie' }), []);
   assert.deepEqual(await toMetaPreviews(c, null, { stremioType: 'movie' }), []);
+});
+
+test('art tile rows keep poster-only titles and drop titles with no art', async () => {
+  _imdbCache.clear();
+  const c = client({ 801: 'tt0000801', 802: 'tt0000802', 803: 'tt0000803' });
+  const results = [
+    { id: 801, title: 'Poster Only', poster_path: '/posteronly.jpg', backdrop_path: null, original_language: 'te', adult: false },
+    { id: 802, title: 'No Art', poster_path: null, backdrop_path: null, adult: false },
+    { id: 803, title: 'Both', poster_path: '/bothposter.jpg', backdrop_path: '/bothbackdrop.jpg', adult: false },
+  ];
+  const metas = await runWithOrigin('https://golden.example', () =>
+    toMetaPreviews(c, results, { stremioType: 'movie', posterShape: 'landscape', art: 'tile' })
+  );
+  assert.deepEqual(metas.map((m) => m.id), ['tt0000801', 'tt0000803'], 'the title with no art is dropped');
+
+  const [posterOnly, both] = metas;
+  const url = new URL(posterOnly.landscapePoster);
+  assert.equal(`${url.origin}${url.pathname}`, 'https://golden.example/art/tile.jpg');
+  assert.equal(url.searchParams.get('p'), '/posteronly.jpg');
+  assert.equal(url.searchParams.has('b'), false);
+  assert.equal(posterOnly.poster, posterOnly.landscapePoster);
+  assert.equal(posterOnly._rawPosterUrl, 'https://image.tmdb.org/t/p/w500/posteronly.jpg');
+  assert.equal(posterOnly.background, undefined, 'a poster is never used as the background');
+
+  const withBackdrop = new URL(both.landscapePoster);
+  assert.equal(withBackdrop.searchParams.get('b'), '/bothbackdrop.jpg');
+  assert.equal(withBackdrop.searchParams.has('p'), false, 'backdrop URLs are unchanged');
+  assert.equal(both.background, 'https://image.tmdb.org/t/p/w1280/bothbackdrop.jpg');
 });

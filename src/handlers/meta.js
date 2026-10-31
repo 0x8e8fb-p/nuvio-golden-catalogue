@@ -18,13 +18,13 @@
  * throws), so Cinemeta can still fill gaps.
  */
 
-const { createTmdbClient } = require('../tmdb/client');
+const { getTmdbClient } = require('../tmdb/shared');
 const { createFanartClient } = require('../images/fanart');
 const { buildMeta } = require('../tmdb/meta');
 const { createAnilistClient } = require('../sources/anilist');
 
 function createMetaHandler(config, deps = {}) {
-  const client = deps.client || createTmdbClient({ language: config.defaults.language });
+  const client = deps.client || getTmdbClient();
   // Disable only when there's no way to build richer metadata than Cinemeta.
   if (!client.hasKey() && !deps.client) return null;
 
