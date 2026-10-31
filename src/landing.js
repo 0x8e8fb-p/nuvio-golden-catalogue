@@ -79,7 +79,7 @@ function landingPage(config, opts) {
 
   const warning = opts.tmdbKeyConfigured === false
     ? `<div class="warn"><b>This deployment has no TMDB key yet, so every row is empty.</b> Add <code>TMDB_API_KEY</code>
-    (the v3 API Key from themoviedb.org) in the host's environment variables, then redeploy.</div>`
+    (the API Key or the API Read Access Token from themoviedb.org) in the host's environment variables, then redeploy.</div>`
     : '';
 
   return `<!doctype html>

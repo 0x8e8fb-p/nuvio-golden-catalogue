@@ -188,9 +188,27 @@ function checkRenderer() {
   return rendererCheck;
 }
 
+/**
+ * Does the configured TMDB key actually work? One cheap request; TMDB answers
+ * 401 for a wrong key. A working answer stays in the client's cache for an
+ * hour, so repeated checks are free.
+ * @returns {Promise<{ok: boolean, auth?: string, error?: string}>}
+ */
+async function checkTmdb(client) {
+  if (!client.hasKey()) return { ok: false, error: 'TMDB_API_KEY is not set' };
+  try {
+    await client.get('/configuration');
+    return { ok: true, auth: client.authMode };
+  } catch (err) {
+    const rejected = err && (err.status === 401 || err.status === 403);
+    return { ok: false, auth: client.authMode, error: rejected ? 'TMDB rejected the key' : 'TMDB did not answer' };
+  }
+}
+
 app.get('/health', async (req, res) => {
   const client = getTmdbClient();
   const region = defaultRegion(baseConfig);
+  const [tmdb, renderer] = await Promise.all([checkTmdb(client), checkRenderer()]);
   sendJson(
     res,
     {
@@ -201,7 +219,8 @@ app.get('/health', async (req, res) => {
       presets: listPresets(baseConfig).length,
       collections: packStats(region),
       tmdbKeyConfigured: client.hasKey(),
-      renderer: await checkRenderer(),
+      tmdb,
+      renderer,
       publicOrigin: currentOrigin(),
       cache: client.cacheStats(),
       breaker: client.breakerStats(),

@@ -30,6 +30,8 @@ const BACKDROP_SIZE = 'w1280';
 const DEFAULT_TTL_MS = 60 * 60 * 1000; // 1 hour
 const DEFAULT_MAX_CONCURRENT = 12; // below TMDB's ~20 connections per IP
 const MAX_RETRY_AFTER_MS = 3000;
+// A TMDB v4 "API Read Access Token" is a JWT: three base64url parts.
+const JWT_RE = /^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/;
 
 function imageUrl(pathPart, size) {
   if (!pathPart) return undefined;
@@ -66,7 +68,15 @@ function retryAfterMs(res) {
 }
 
 function createTmdbClient(opts = {}) {
-  const apiKey = opts.apiKey ?? process.env.TMDB_API_KEY;
+  // Either TMDB credential works: the v3 "API Key" (32 hex characters) goes in
+  // the api_key parameter; the v4 "API Read Access Token" (a JWT) is sent as a
+  // Bearer token, which every v3 endpoint also accepts. Pasted keys are trimmed.
+  const rawKey = opts.apiKey ?? process.env.TMDB_API_KEY;
+  const apiKey = typeof rawKey === 'string' ? rawKey.trim() : rawKey;
+  const bearer = typeof apiKey === 'string' && JWT_RE.test(apiKey);
+  const headers = bearer
+    ? { accept: 'application/json', authorization: `Bearer ${apiKey}` }
+    : { accept: 'application/json' };
   const language = opts.language ?? process.env.TMDB_LANGUAGE ?? 'en-US';
   // TMDB_API_BASE lets tests and local runs point at a mock server.
   const apiBase = String(opts.baseUrl || process.env.TMDB_API_BASE || TMDB_BASE).replace(/\/+$/, '');
@@ -112,7 +122,7 @@ function createTmdbClient(opts = {}) {
 
   function buildUrl(endpoint, params = {}) {
     const url = new URL(apiBase + endpoint);
-    url.searchParams.set('api_key', apiKey);
+    if (!bearer) url.searchParams.set('api_key', apiKey);
     // language: null omits the parameter (image endpoints filter by it).
     if (params.language !== null) url.searchParams.set('language', params.language || language);
     url.searchParams.set('include_adult', 'false');
@@ -134,7 +144,7 @@ function createTmdbClient(opts = {}) {
       let res;
       try {
         res = await fetchImpl(url, {
-          headers: { accept: 'application/json' },
+          headers,
           signal: AbortSignal.timeout(timeoutMs),
         });
       } catch (err) {
@@ -224,6 +234,7 @@ function createTmdbClient(opts = {}) {
     buildUrl, // exposed for the nightly ping / tests (contains the key, never log)
     language,
     rpdbKey,
+    authMode: bearer ? 'read-access-token' : 'api-key',
     cacheStats: () => (cache.stats ? cache.stats() : null),
     breakerStats: () => (breaker.stats ? breaker.stats() : null),
     queueStats: () => ({ active, waiting: waiting.length, max: maxConcurrent }),

@@ -197,6 +197,7 @@ test('health endpoint reports status without leaking secrets', async () => {
   assert.ok(h.presets > 0);
   assert.ok(h.collections.folders > 0);
   assert.equal(typeof h.tmdbKeyConfigured, 'boolean');
+  assert.deepEqual(h.tmdb, { ok: false, error: 'TMDB_API_KEY is not set' }, 'reports that rows will be empty');
   assert.equal(h.renderer.ok, true, 'sharp and the bundled font work on this host');
   assert.equal(typeof h.renderer.ms, 'number');
   // never expose the key itself

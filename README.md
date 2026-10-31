@@ -174,7 +174,7 @@ The 17 preset slugs removed after v2 still work, for example `/c/movies/manifest
 | `/r/<CC>/c/<preset>/manifest.json` | Preset in a region |
 | `/c/<preset>/manifest.json` | Preset in the default region |
 | `/presets.json` | Preset list with slug, name and row count |
-| `/health` | Status, version, region, row, preset and folder counts, whether a TMDB key is configured, the public origin, and cache and circuit-breaker stats. It never shows the key. `renderer` reports `ok` and `ms` from one tiny test render per process, which shows whether image rendering works on the host. |
+| `/health` | Status, version, region, row, preset and folder counts, the public origin, and cache and circuit-breaker stats. `tmdb` reports `ok` from one test request to TMDB, so a wrong key shows up here; it never shows the key. `renderer` reports `ok` and `ms` from one tiny test render per process, which shows whether image rendering works on the host. |
 | `/art/...` | Generated artwork |
 | `/configure` | Redirect to the landing page |
 
@@ -184,12 +184,12 @@ An invalid country code returns HTTP 400 and an unknown preset returns 404.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/0x8e8fb-p/nuvio-golden-catalogue&env=TMDB_API_KEY&envDescription=Your%20free%20TMDB%20v3%20API%20key)
 
-1. Get a free TMDB key at [themoviedb.org/settings/api](https://www.themoviedb.org/settings/api). Copy the "API Key", which is 32 hex characters. The longer "API Read Access Token" does not work here.
+1. Get a free TMDB key at [themoviedb.org/settings/api](https://www.themoviedb.org/settings/api). Either credential on that page works: the "API Key" (32 hex characters) or the longer "API Read Access Token".
 2. Import the GitHub repo into Vercel (Add New > Project), or use the Deploy button above. Leave the framework preset as Other. The first deploy works before the key is set.
 3. In Project > Settings > Environment Variables, set `TMDB_API_KEY` to that key. Optionally set `DEFAULT_REGION=IN` to make India the default edition.
 4. Redeploy from the Deployments tab. Environment variable changes only apply to new deployments.
 5. Find the production domain under Project > Settings > Domains, for example `<project>.vercel.app`, and use it in every install link. Deployment-specific URLs, the ones with a hash in them, sit behind Vercel Authentication, and a TV cannot open them.
-6. Open `https://<domain>/health` and check that `tmdbKeyConfigured` is `true` and `renderer.ok` is `true`. If `renderer.ok` is `false`, `renderer.error` names the failure.
+6. Open `https://<domain>/health` and check that `tmdb.ok` is `true` (TMDB accepted the key) and `renderer.ok` is `true`. When either is `false`, its `error` names the problem.
 
 Without a key the addon still installs, but every row is empty and the landing page shows a warning. Use Node 22 or newer on Vercel (Settings > Build and Deployment > Node.js Version). vercel.json rewrites every path to the Express app in api/index.js, and its `functions` block bundles the assets, data and schema folders with that function (`includeFiles`) and allows it up to 30 seconds per request (`maxDuration`). Any other Node host can run `npm start` with the same environment variables.
 
@@ -199,7 +199,7 @@ Set these in Vercel under Project > Settings > Environment Variables, or in `.en
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `TMDB_API_KEY` | none, required | TMDB v3 API Key (32 hex characters). Without it every row is empty. |
+| `TMDB_API_KEY` | none, required | TMDB "API Key" (32 hex characters) or "API Read Access Token". Without it every row is empty. |
 | `DEFAULT_REGION` | `US` | Country used by `/manifest.json`, `/collections.json` and `/c/<preset>/manifest.json` |
 | `PUBLIC_BASE_URL` | the request's host | Public origin written into artwork and pack URLs, for example `https://tv.example.org`. Set it for a custom domain or a proxy. |
 | `TRUST_PROXY` | unset | `1` trusts `X-Forwarded-Host` and `X-Forwarded-Proto`. Set it when a proxy in front of a self-hosted server sets these headers. On Vercel they are trusted automatically. Without it the `Host` header is used. |
