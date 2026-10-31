@@ -1,0 +1,20 @@
+# dependencies
+node_modules/
+
+# secrets — NEVER commit these
+.env
+.env.local
+.env.*.local
+*.key
+
+# build / deploy
+.vercel
+dist/
+coverage/
+
+# os / editor
+.DS_Store
+*.log
+npm-debug.log*
+.idea/
+.vscode/

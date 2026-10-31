@@ -1,0 +1,35 @@
+name: Nightly canary
+
+# Scheduled runs use UTC. The shortest allowed interval is 5 minutes; scheduled
+# runs can be delayed under load, and GitHub disables schedules after ~60 days
+# of repo inactivity (a push re-enables them). workflow_dispatch lets you run it
+# by hand from the Actions tab.
+on:
+  schedule:
+    - cron: '0 6 * * *' # 06:00 UTC daily
+  workflow_dispatch: {}
+
+concurrency:
+  group: nightly
+  cancel-in-progress: true
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Validate golden config (no network)
+        run: npm run validate:config
+      - name: Live TMDB ping
+        # Secrets are masked in logs and are NOT exposed to workflows triggered
+        # by pull requests from forks. The ping script exits 0 (skips) when the
+        # key is absent, so this step never fails on a fork PR.
+        env:
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+        run: npm run ping:tmdb
