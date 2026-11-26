@@ -256,8 +256,8 @@ function describeRoute() {
   });
 
   test('hero.mp4 without posters is a short-lived 404, so Nuvio keeps the still', { skip: !videoEnabled() && 'ffmpeg not available' }, async () => {
-    // Tests run without a TMDB key: no posters to show.
-    const res = await fetch(`${base}/art/folder/IN/netflix/hero.mp4?v=5`);
+    // Tests run without a TMDB key, and BR has no committed art plan: no pictures to show.
+    const res = await fetch(`${base}/art/folder/BR/netflix/hero.mp4?v=5`);
     assert.equal(res.status, 404);
     assert.doesNotMatch(res.headers.get('cache-control'), /s-maxage=86400/);
   });
