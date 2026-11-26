@@ -9,6 +9,8 @@
  *   GET /art/folder/:region/:key/cover.jpg?v&shape   collection folder cover
  *   GET /art/folder/:region/:key/focus.webp?v&shape  animated focus loop (GIF below Android 9)
  *   GET /art/folder/:region/:key/hero.jpg?v          poster-wall hero backdrop
+ *   GET /art/folder/:region/:key/hero.mp4?v          hero video: the poster wall coming alive
+ *                                                    (H.264, Range requests answered)
  *   GET /art/folder/:region/:key/logo.png?v          transparent folder title logo (home hero)
  *
  * Images are long-lived on Vercel's CDN (s-maxage), and rendered results are
@@ -18,6 +20,7 @@
  * later request tries the failed input again.
  */
 
+const crypto = require('node:crypto');
 const express = require('express');
 const { verify } = require('./sign');
 const { getTmdbClient } = require('../tmdb/shared');
@@ -25,6 +28,7 @@ const { fetchTmdbImage, isImagePath } = require('./fetch-image');
 const { bestLogo } = require('./logos');
 const { findFolder, folderArtInputs, folderLogo } = require('./folder-art');
 const { normalizeRegion } = require('../lib/region');
+const { videoEnabled, encodeHeroVideo } = require('./video');
 
 const ITEM_CACHE = 'public, max-age=86400, s-maxage=2592000, stale-while-revalidate=604800';
 const FOLDER_CACHE = 'public, max-age=21600, s-maxage=86400, stale-while-revalidate=604800';
@@ -32,7 +36,7 @@ const FOLDER_CACHE = 'public, max-age=21600, s-maxage=86400, stale-while-revalid
 const DEGRADED_CACHE = 'public, max-age=60, s-maxage=300';
 const REDIRECT_CACHE = 'public, max-age=86400';
 const SHAPES = new Set(['landscape', 'poster', 'square']);
-const FOLDER_FILES = new Set(['cover.jpg', 'focus.webp', 'focus.gif', 'hero.jpg', 'logo.png']);
+const FOLDER_FILES = new Set(['cover.jpg', 'focus.webp', 'focus.gif', 'hero.jpg', 'hero.mp4', 'logo.png']);
 const SHAPED_FILES = new Set(['cover.jpg', 'focus.webp', 'focus.gif']);
 
 /**
@@ -136,10 +140,60 @@ function send(res, out, type, cacheControl) {
   res.send(out.buf);
 }
 
+// Strong ETags per video buffer, so 206 parts carry the ETag of the whole file.
+const etags = new WeakMap();
+function etagOf(buf) {
+  let tag = etags.get(buf);
+  if (!tag) {
+    tag = `"${crypto.createHash('sha1').update(buf).digest('base64url').slice(0, 27)}"`;
+    etags.set(buf, tag);
+  }
+  return tag;
+}
+
+/**
+ * Send a video, answering a single byte range with 206 (players seek and resume with
+ * Range requests). A whole-file 200 is what the CDN keeps.
+ */
+function sendVideo(req, res, out, cacheControl) {
+  const buf = out.buf;
+  const total = buf.length;
+  res.set('content-type', 'video/mp4');
+  res.set('accept-ranges', 'bytes');
+  res.set('cache-control', out.degraded ? DEGRADED_CACHE : cacheControl);
+  res.set('access-control-allow-origin', '*');
+  res.set('etag', etagOf(buf));
+  const header = req.headers.range;
+  const m = header ? /^bytes=(\d*)-(\d*)$/.exec(String(header).trim()) : null;
+  if (!m || (m[1] === '' && m[2] === '')) {
+    res.send(buf);
+    return;
+  }
+  let start;
+  let end;
+  if (m[1] === '') {
+    start = Math.max(0, total - Number(m[2]));
+    end = total - 1;
+  } else {
+    start = Number(m[1]);
+    end = m[2] === '' ? total - 1 : Math.min(Number(m[2]), total - 1);
+  }
+  if (!(start <= end) || start >= total) {
+    res.status(416).set('content-range', `bytes */${total}`).end();
+    return;
+  }
+  res.status(206).set('content-range', `bytes ${start}-${end}/${total}`);
+  res.send(buf.subarray(start, end + 1));
+}
+
 function failure(res, err) {
   if (res.headersSent) return; // a response is already on its way; a second one would throw
   if (err && err.code === 'SHARP_UNAVAILABLE') {
     res.status(503).set('cache-control', 'no-store').json({ err: 'image renderer unavailable' });
+    return;
+  }
+  if (err && err.code === 'FFMPEG_UNAVAILABLE') {
+    res.status(503).set('cache-control', 'no-store').json({ err: 'video encoder unavailable' });
     return;
   }
   res.status(500).set('cache-control', 'no-store').json({ err: 'render failed' });
@@ -327,6 +381,25 @@ function createArtRouter() {
         send(res, out, 'image/jpeg', FOLDER_CACHE);
         return;
       }
+      if (file === 'hero.mp4') {
+        if (!videoEnabled()) {
+          res.status(503).set('cache-control', 'no-store').json({ err: 'hero videos are off on this deployment' });
+          return;
+        }
+        const out = await cachedRender(`video:${region}:${folder.key}`, async () => {
+          const { degraded, ...input } = await folderArtInputs(region, folder, 'hero');
+          const video = await render().heroVideoFrames(input);
+          // No poster to show: not worth a video. Nuvio keeps the hero still.
+          if (!video) return { buf: null, degraded: true };
+          return { buf: await encodeHeroVideo(video), degraded };
+        });
+        if (!out.buf) {
+          res.status(404).set('cache-control', DEGRADED_CACHE).json({ err: 'no posters for a hero video yet' });
+          return;
+        }
+        sendVideo(req, res, out, FOLDER_CACHE);
+        return;
+      }
       // logo.png, the only file left.
       const out = await cachedRender(`logo:${region}:${folder.key}`, () => folderLogoImage(folder));
       send(res, out, 'image/png', FOLDER_CACHE);
@@ -338,4 +411,4 @@ function createArtRouter() {
   return router;
 }
 
-module.exports = { createArtRouter, _RenderCache: RenderCache };
+module.exports = { createArtRouter, _RenderCache: RenderCache, _sendVideo: sendVideo };

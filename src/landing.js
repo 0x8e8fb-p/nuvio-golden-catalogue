@@ -39,6 +39,7 @@ function linksFor(origin, region, presets) {
     manifest: `${base}/manifest.json`,
     pack: `${base}/collections.json`,
     packGif: `${base}/collections.json?focus=gif`,
+    packStill: `${base}/collections.json?motion=off`,
     stremio: installLinks(`${base}/manifest.json`).stremio,
     presets: Object.fromEntries(presets.map((p) => [p.slug, `${base}/c/${p.slug}/manifest.json`])),
   };
@@ -125,8 +126,9 @@ function landingPage(config, opts) {
 </head><body><div class="wrap">
   <p class="eyebrow">For Nuvio and Stremio</p>
   <h1>${name}</h1>
-  <p class="lead">Top 10 rows, cinematic title tiles and a full collections pack, with Indian and worldwide
-    movies and shows blended in every row. Pick your country, then add two links to Nuvio.</p>
+  <p class="lead">Top 10 rows, cinematic title tiles and a collections tree with moving artwork: every folder has
+    a focus loop and a hero video. Indian and worldwide movies and shows are blended in every row. Pick your
+    country, then add two links to Nuvio.</p>
   ${warning}
   <div class="region">
     <label for="region">Country</label>
@@ -143,18 +145,21 @@ function landingPage(config, opts) {
 
   <div class="step">
     <h2>2. Import Golden Collections</h2>
-    <p>Streaming services, franchises, directors and more, each with live artwork.</p>
+    <p>Eight sections: streaming services, Indian cinema, genres, moods, franchises, studios and directors, and
+      world cinema. Each folder opens into rows, and plays a hero video on the Modern home layout of Nuvio TV.</p>
     ${copyRow('pack', first.pack)}
     <div class="path">Nuvio TV: Settings &rsaquo; Content &amp; Discovery &rsaquo; Collections &rsaquo; Import &rsaquo; URL.
       Import again any time to update; your collections are replaced, not duplicated.</div>
     <p class="alt">TV on Android 8 or older? Nuvio animates WebP only from Android 9, so import this link instead
       to get GIF focus animations. Same collections, so you can switch either way.</p>
     ${copyRow('packGif', first.packGif)}
+    <p class="alt">Prefer calm tiles? This link gives the same collections with still artwork and no hero videos.</p>
+    ${copyRow('packStill', first.packStill)}
   </div>
 
   <div class="facts">
     <div class="fact"><b>${homeRows}</b><span>home rows</span></div>
-    <div class="fact"><b id="folders">${stats[def] ? stats[def].folders : 0}</b><span>collection folders</span></div>
+    <div class="fact"><b id="folders">${stats[def] ? stats[def].folders : 0}</b><span>folders, each with a hero video</span></div>
     <div class="fact"><b>0</b><span>API keys needed in Nuvio</span></div>
   </div>
 
@@ -180,6 +185,7 @@ function landingPage(config, opts) {
     setText('manifest', l.manifest);
     setText('pack', l.pack);
     setText('packGif', l.packGif);
+    setText('packStill', l.packStill);
     Object.keys(l.presets).forEach(function (slug) { setText('preset-' + slug, l.presets[slug]); });
     document.getElementById('stremio').setAttribute('href', l.stremio);
     setText('folders', (STATS[r] || { folders: 0 }).folders);

@@ -11,10 +11,14 @@
  * - Rows that need a streaming service the edition's region lacks are left out
  *   (e.g. no "On Hulu" row in India).
  * - Two search-only engine catalogs (gc-movie, gc-series) carry search and the
- *   collection folders. Nuvio never shows search-only catalogs on the home
- *   screen, the catalog-order screen or Discover. They are added only when
- *   opts.engine is true (all public editions). Their names double as folder
- *   tab labels ("Movies", "Shows").
+ *   collection folders' plain rows. Nuvio never shows search-only catalogs on
+ *   the home screen, the catalog-order screen or Discover. Their names double
+ *   as folder row labels ("Movies", "Shows").
+ * - Facet catalogs (gc-movie-top, gc-series-orig, ...) name the other folder
+ *   rows ("Top Rated Movies", "Original Series"). They require both search and
+ *   genre, so Nuvio also leaves them out of search; only collection folders
+ *   reach them. Engine and facet catalogs are added when opts.engine is true
+ *   (all public editions).
  */
 
 const { loadConfig } = require('./lib/config-loader');
@@ -22,6 +26,7 @@ const { isActive, resolveName } = require('./lib/schedule');
 const { resolveParams, hasUnavailable } = require('./lib/templating');
 const { regionTimeZone } = require('./lib/region');
 const { CATALOG_IDS } = require('./collections/engine');
+const { facetCatalogs } = require('./collections/facets');
 
 // Shown as the tab label of every collection folder, and in Nuvio's search
 // results, where the addon name is shown next to it.
@@ -57,13 +62,14 @@ function isRowAvailable(row, region) {
 }
 
 function engineCatalogs() {
-  return ['movie', 'series'].map((type) => ({
+  const base = ['movie', 'series'].map((type) => ({
     type,
     id: CATALOG_IDS[type],
     name: ENGINE_NAMES[type],
     pageSize: 40,
     extra: [{ name: 'search', isRequired: true }, { name: 'genre' }, { name: 'skip' }],
   }));
+  return base.concat(facetCatalogs().map((c) => ({ ...c, pageSize: 40 })));
 }
 
 function buildManifest(config = loadConfig(), opts = {}) {

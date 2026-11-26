@@ -33,7 +33,7 @@ function testImage(w, h, { r = 40, g = 90, b = 160, png = false, alpha = false }
 
 async function info(buf) {
   const m = await sharp(buf, { animated: true }).metadata();
-  return { format: m.format, width: m.width, height: m.pageHeight || m.height, pages: m.pages || 1, loop: m.loop };
+  return { format: m.format, width: m.width, height: m.pageHeight || m.height, pages: m.pages || 1, loop: m.loop, delay: m.delay || [] };
 }
 
 /**
@@ -94,7 +94,7 @@ test('art URLs use the request origin, and need one', () => {
   });
   assert.equal(
     folderArtUrl('https://g.example', 'IN', 'netflix', 'cover', { shape: 'poster' }),
-    'https://g.example/art/folder/IN/netflix/cover.jpg?v=1&shape=poster'
+    'https://g.example/art/folder/IN/netflix/cover.jpg?v=4&shape=poster'
   );
 });
 
@@ -207,14 +207,21 @@ test('GIF focus loop for 4 pictures stays under 500 KB and still animates', asyn
   assert.ok(buf.length < 500 * 1000, `GIF is ${Math.round(buf.length / 1000)} KB`);
   assert.ok(gif.pages > 2, `expected crossfade frames, got ${gif.pages}`);
   assert.equal(gif.loop, 0, 'loops forever');
-  // The WebP loop keeps its 4 eased crossfade frames per picture.
+  // The WebP loop is continuous motion: 3 pictures x 14 uniform 100 ms frames.
   const webp = await info(await render.renderFolderFocus({ backdrops, wordmark: 'Thrillers', format: 'webp' }));
-  assert.equal(webp.pages, 20);
+  assert.equal(webp.pages, 42);
+  assert.ok(webp.delay.every((d) => d === 100), 'Nuvio iOS plays WebP frames at 100 ms, so every delay is 100');
 });
 
-test('a single picture gives a still focus image', async () => {
-  const out = await info(await render.renderFolderFocus({ backdrops: [await testImage(780, 439)], format: 'webp' }));
-  assert.equal(out.pages, 1);
+test('a single picture still breathes in the WebP loop, and is a still GIF', async () => {
+  const one = [await grainImage(780, 439, 7919)];
+  const webp = await info(await render.renderFolderFocus({ backdrops: one, format: 'webp' }));
+  assert.ok(webp.pages > 1, 'slow push-in on one picture');
+  // libwebp merges identical frames at the turn of the push-in; merged frames
+  // stay on the 100 ms grid.
+  assert.ok(webp.delay.every((d) => d % 100 === 0), webp.delay.join(','));
+  const gif = await info(await render.renderFolderFocus({ backdrops: one, format: 'gif' }));
+  assert.equal(gif.pages, 1);
 });
 
 test('hero wall is 1920x1080, even with nothing to show', async () => {

@@ -36,8 +36,8 @@ const PROVIDERS = JSON.parse(
   fs.readFileSync(path.join(__dirname, '..', '..', 'data', 'providers.json'), 'utf8')
 );
 
+const { CATALOG_IDS, PRESETS, facetParams, facetOrder, parseRowCatalogId, parseRowSpec } = require('./facets');
 const TYPES = ['movie', 'series'];
-const CATALOG_IDS = { movie: 'gc-movie', series: 'gc-series' };
 const INDIAN_LANGS = 'hi|te|ta|ml|kn|bn|mr|pa|gu';
 
 /** Folder kinds that get a blended Indian feed. */
@@ -79,15 +79,32 @@ function indianTwin(type, params) {
  * @returns {{movie?: Array, series?: Array}} each an array of components
  *   { endpoint, params, weight }, or a list descriptor { list: url }.
  */
-function folderSources(folder, collection, region) {
+function folderSources(folder, collection, region, facet = 'base') {
   const types = folder.types || collection.types || TYPES;
   const extra = folder.params || {};
+  const kind = folderKind(folder);
   const out = {};
 
   for (const type of types) {
     let components = null;
+    // List-backed folders (franchise, universe, director): the facet picks the order.
+    const order = facetOrder(facet, kind);
 
-    if (folder.provider) {
+    if (facet === 'orig') {
+      // A streaming service's own shows, from its TMDB network (no Indian blend).
+      const o = folder.originals;
+      if (kind !== 'provider' || type !== 'series' || !o || !providerIds(folder.provider, region)) continue;
+      const net = typeof o === 'object' ? o.network : o;
+      const params = {
+        sort_by: 'popularity.desc',
+        'vote_count.gte': 10,
+        with_networks: String(net),
+        'first_air_date.lte': '{{now}}',
+        ...((typeof o === 'object' && o.params) || {}),
+      };
+      out[type] = [{ endpoint: '/discover/tv', params: resolveParams(params, { region }), weight: 1 }];
+      continue;
+    } else if (folder.provider) {
       const ids = providerIds(folder.provider, region);
       if (!ids) continue; // service not offered in this region
       components = [
@@ -128,23 +145,24 @@ function folderSources(folder, collection, region) {
         },
       ];
     } else if (folder.collection) {
-      if (type !== 'movie') continue;
-      out.movie = { franchise: Number(folder.collection) };
+      if (type !== 'movie' || !order) continue;
+      out.movie = { franchise: Number(folder.collection), order };
       continue;
     } else if (folder.parts) {
       // A shared universe assembled from several collections and single films.
-      if (type !== 'movie') continue;
+      if (type !== 'movie' || !order) continue;
       out.movie = {
         parts: {
           collections: (folder.parts.collections || []).map(Number),
           movies: (folder.parts.movies || []).map(Number),
         },
+        order,
       };
       continue;
     } else if (folder.person) {
       // Films the person directed (from their credits), newest first.
-      if (type !== 'movie') continue;
-      out.movie = { director: Number(folder.person) };
+      if (type !== 'movie' || !order) continue;
+      out.movie = { director: Number(folder.person), order };
       continue;
     } else if (folder.language) {
       components = [
@@ -156,7 +174,7 @@ function folderSources(folder, collection, region) {
       ];
     } else if (folder.list) {
       const url = typeof folder.list === 'string' ? folder.list : folder.list[type];
-      if (!url) continue;
+      if (!url || facet !== 'base') continue;
       out[type] = { list: url };
       continue;
     } else if (folder.genre) {
@@ -172,6 +190,7 @@ function folderSources(folder, collection, region) {
       if (!d) continue;
       components = [{ endpoint: discoverEndpoint(type), params: { ...d }, weight: 1 }];
     } else if (folder.trending) {
+      if (facet !== 'base' && facet !== 'trend') continue;
       components = [
         { endpoint: type === 'series' ? '/trending/tv/week' : '/trending/movie/week', params: {}, weight: 1 },
       ];
@@ -179,12 +198,18 @@ function folderSources(folder, collection, region) {
 
     if (!components) continue;
 
+    if (!folder.trending) {
+      // Rewrite the base query for the facet, before the Indian blend is added.
+      const rewritten = facetParams(facet, type, kind, components[0].params);
+      if (!rewritten) continue;
+      components = [{ ...components[0], params: rewritten }];
+    }
+
     // Resolve templates now, so a region without a needed service drops the folder.
     components = components.map((c) => ({ ...c, params: resolveParams(c.params, { region }) }));
     if (components.some((c) => hasUnavailable(c.params))) continue;
 
     // Blend Indian titles into general folders.
-    const kind = folderKind(folder);
     const mixable = MIXABLE.has(kind) && folder.indiaMix !== false && collection.indiaMix !== false;
     if (mixable && components.length === 1 && components[0].endpoint.startsWith('/discover/')) {
       const [gw, iw] = mixWeights(region, folder, collection);
@@ -251,7 +276,89 @@ let regionCacheDay = '';
 const REGION_CACHE_MAX = 24; // a handful of real editions; unlisted codes share one entry
 
 /**
- * Every folder available in a region, with its resolved sources.
+ * The rows a folder shows, as [{ type, facet, key, label? }]. A folder lists
+ * them in `rows` ("trend:movie"), else its kind's preset applies. A row whose
+ * facet gives no feed for this folder in this region is left out.
+ */
+function folderRows(entry) {
+  const specs = Array.isArray(entry.raw.rows) ? entry.raw.rows : PRESETS[entry.kind] || ['base:movie', 'base:series'];
+  const rows = [];
+  for (const spec of specs) {
+    const row = parseRowSpec(spec);
+    if (!row) continue;
+    if (facetSource(entry, row.facet, row.type)) rows.push({ ...row, key: entry.key });
+  }
+  // A folder always has at least its plain feeds.
+  if (!rows.length) for (const type of entry.types) rows.push({ type, facet: 'base', key: entry.key });
+  return rows;
+}
+
+/**
+ * The feed behind one row of a folder: its base source, or a facet of it.
+ * Computed once per folder, facet and region, then kept with the folder.
+ * @returns {Array|object|null} components array, list descriptor, or null
+ */
+function facetSource(entry, facet, type) {
+  if (facet === 'base' || !facet) return entry.sources[type] || null;
+  if (entry.members) return null; // a group's rows are its members
+  if (!entry.facetCache) entry.facetCache = new Map();
+  if (!entry.facetCache.has(facet)) {
+    entry.facetCache.set(facet, folderSources(entry.raw, entry.collection, entry.region, facet));
+  }
+  return entry.facetCache.get(facet)[type] || null;
+}
+
+function makeEntry(folder, collection, region) {
+  const sources = folderSources(folder, collection, region);
+  const types = TYPES.filter((t) => sources[t]);
+  if (!types.length) return null;
+  return {
+    key: folder.id,
+    title: folder.title,
+    collectionId: collection.id,
+    collection,
+    region,
+    shape: (folder.tileShape || collection.tileShape || 'LANDSCAPE').toLowerCase(),
+    kind: folderKind(folder),
+    types,
+    sources,
+    art: folderArtSpec(folder),
+    raw: folder,
+  };
+}
+
+/**
+ * A group folder: a tile whose rows are other folders (its members), each row
+ * labelled with the member's name. Members usually live in the hidden library
+ * collection. The group's own plain feed per type is its first member's.
+ */
+function makeGroup(folder, collection, region, folders) {
+  const members = folder.group.map((id) => folders.get(id)).filter(Boolean);
+  if (!members.length) return null;
+  const types = TYPES.filter((t) => members.some((m) => m.sources[t]));
+  const sources = {};
+  for (const t of types) sources[t] = members.find((m) => m.sources[t]).sources[t];
+  const entry = {
+    key: folder.id,
+    title: folder.title,
+    collectionId: collection.id,
+    collection,
+    region,
+    shape: (folder.tileShape || collection.tileShape || 'LANDSCAPE').toLowerCase(),
+    kind: 'group',
+    types,
+    sources,
+    members,
+    art: folderArtSpec(folder),
+    raw: folder,
+  };
+  entry.rows = members.flatMap((m) => m.types.map((type) => ({ type, facet: 'base', key: m.key, label: m.title })));
+  return entry;
+}
+
+/**
+ * Every folder available in a region, with its resolved sources and rows.
+ * Folders of hidden collections (the library) are addressable but not shown.
  * @param {string} region e.g. "IN"
  * @returns {{collections: Array, folders: Map<string, object>}}
  */
@@ -274,32 +381,45 @@ function regionFolders(region) {
   }
 
   const folders = new Map();
-  const collections = [];
-  for (const collection of orderedCollections(r)) {
-    if (collection.regions && !collection.regions.includes(r)) continue;
-    const list = [];
+  const add = (entry) => {
+    if (folders.has(entry.key)) throw new Error(`duplicate folder id "${entry.key}"`);
+    folders.set(entry.key, entry);
+  };
+  const visible = (x) => !x.regions || x.regions.includes(r);
+  const ordered = orderedCollections(r).filter(visible);
+
+  // Pass 1: plain folders everywhere (groups need their members first).
+  const lists = new Map(ordered.map((c) => [c.id, []]));
+  for (const collection of ordered) {
     for (const folder of collection.folders) {
-      if (folder.regions && !folder.regions.includes(r)) continue;
-      const sources = folderSources(folder, collection, r);
-      const types = TYPES.filter((t) => sources[t]);
-      if (!types.length) continue;
-      const entry = {
-        key: folder.id,
-        title: folder.title,
-        collectionId: collection.id,
-        shape: (folder.tileShape || collection.tileShape || 'LANDSCAPE').toLowerCase(),
-        kind: folderKind(folder),
-        types,
-        sources,
-        art: folderArtSpec(folder),
-        raw: folder,
-      };
-      if (folders.has(entry.key)) throw new Error(`duplicate folder id "${entry.key}"`);
-      folders.set(entry.key, entry);
-      list.push(entry);
+      if (!visible(folder) || Array.isArray(folder.group)) continue;
+      const entry = makeEntry(folder, collection, r);
+      if (!entry) continue;
+      entry.rows = folderRows(entry);
+      add(entry);
     }
-    if (list.length) collections.push({ ...collection, entries: list });
   }
+  // Pass 2: groups, then each visible collection in its folder order.
+  for (const collection of ordered) {
+    for (const folder of collection.folders) {
+      if (!visible(folder)) continue;
+      if (Array.isArray(folder.group)) {
+        const entry = makeGroup(folder, collection, r, folders);
+        if (!entry) continue;
+        add(entry);
+        lists.get(collection.id).push(entry);
+      } else if (folders.has(folder.id)) {
+        lists.get(collection.id).push(folders.get(folder.id));
+      }
+    }
+  }
+  const collections = [];
+  for (const collection of ordered) {
+    const list = lists.get(collection.id);
+    if (collection.hidden || !list.length) continue;
+    collections.push({ ...collection, entries: list });
+  }
+
   const value = { region: r, collections, folders };
   regionCache.set(r, value);
   while (regionCache.size > REGION_CACHE_MAX) regionCache.delete(regionCache.keys().next().value);
@@ -307,10 +427,9 @@ function regionFolders(region) {
 }
 
 /**
- * Catalog id of a folder tab: "gc-movie,netflix". Nuvio resolves a collection
- * source's catalog by the part before the first comma, so the tab keeps the
- * declared catalog's pageSize and skip support, and its label is the catalog
- * name ("Movies") rather than the catalog name plus a genre value.
+ * Catalog id of a folder's plain feed: "gc-movie,netflix". Nuvio resolves a
+ * collection source's catalog by the part before the first comma, so the row
+ * keeps the declared catalog's pageSize and skip support and its name.
  * @param {'movie'|'series'} type
  * @param {string} key folder id
  */
@@ -319,15 +438,18 @@ function folderCatalogId(type, key) {
 }
 
 /**
- * Decode a folder tab catalog id ("gc-movie,netflix") for a region edition.
- * @returns {{region: string, folder: object}|null}
+ * Decode a folder row catalog id ("gc-movie,netflix", "gc-series-top,netflix")
+ * for a region edition.
+ * @returns {{region: string, folder: object, facet: string, source: any}|null}
  */
 function decodeFolderCatalog(catalogId, region) {
-  const m = /^gc-(?:movie|series),([a-z0-9-]{1,64})$/.exec(String(catalogId || ''));
-  if (!m) return null;
+  const parsed = parseRowCatalogId(catalogId);
+  if (!parsed) return null;
   const r = normalizeRegion(region) || 'US';
-  const folder = regionFolders(r).folders.get(m[1]);
-  return folder ? { region: r, folder } : null;
+  const folder = regionFolders(r).folders.get(parsed.key);
+  if (!folder) return null;
+  const source = facetSource(folder, parsed.facet, parsed.type);
+  return source ? { region: r, folder, facet: parsed.facet, source } : null;
 }
 
 /** Encode a folder reference for Nuvio's genre field: "IN.netflix". */
@@ -350,6 +472,7 @@ module.exports = {
   INDIAN_LANGS,
   regionFolders,
   folderSources,
+  facetSource,
   folderArtSpec,
   folderCatalogId,
   decodeFolderCatalog,

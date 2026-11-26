@@ -1,9 +1,9 @@
 {
-  "_comment": "Golden Collections, the importable Nuvio collections pack. Each collection is a row of folders on the Nuvio home screen; each folder opens Movies and Shows tabs served by this addon, so no other addon and no user API key is needed. Folder source fields: provider (streaming service key from providers.json, region-aware), network (TMDB network id, shows), company (TMDB company ids, pipe = OR), collection (TMDB franchise collection id), parts (a universe: {collections: [ids], movies: [ids]}, in release order), person (TMDB person id, the films they directed, from their credits), language (original language code), list (public MDBList JSON URL, per type), genre (TMDB genre id per type), keyword (TMDB keyword ids, pipe = OR), discover (explicit TMDB discover params per type), trending. Optional: params (extra TMDB params), types (restrict to movie/series), regions (only show in these regions), indiaMix ([global, india] weights, or false to disable blending), tileShape. Genre, keyword, mood and curated folders blend Indian movies and series into every page (weights in providers.json indiaMix). All ids verified against TMDB on 2026-10-31.",
-  "version": 2,
+  "_comment": "Golden Collections, the importable Nuvio collections pack, as a tree: collection (a home row of tiles) > folder (a tile) > rows (named rows inside the folder page). Every folder row is served by this addon, so no other addon and no user API key is needed. Folder source fields: provider (streaming service key from providers.json, region-aware), network (TMDB network id, shows), company (TMDB company ids, pipe = OR), collection (TMDB franchise collection id), parts (a universe: {collections: [ids], movies: [ids]}, in release order), person (TMDB person id, the films they directed, from their credits), language (original language code), list (public MDBList JSON URL, per type), genre (TMDB genre id per type), keyword (TMDB keyword ids, pipe = OR), discover (explicit TMDB discover params per type), trending, group (ids of other folders: the tile opens one row per member, labelled with its name). Rows: each folder kind has default named rows (src/collections/facets.js PRESETS, e.g. Trending Movies, Top Rated Shows, Hidden Gems); rows [\"facet:type\"] overrides them. Optional: originals (TMDB network id, or {network, params}, of a streaming service own shows: the Original Series row), params (extra TMDB params), types (restrict to movie/series), regions (only show in these regions), indiaMix ([global, india] weights, or false to disable blending), tileShape. A collection with hidden: true (the library) is not shown; its folders exist only as group members. Genre, keyword, mood and curated folders blend Indian movies and series into every row (weights in providers.json indiaMix). All ids verified against TMDB on 2026-10-31.",
+  "version": 4,
   "regionOrder": {
-    "IN": ["spotlight", "streaming", "indian-cinema", "originals", "genres", "indian-studios", "franchises", "indian-franchises", "universes", "directors", "anime", "studios", "moods", "curated", "world-cinema", "decades", "runtime"],
-    "_default": ["spotlight", "streaming", "originals", "genres", "franchises", "universes", "studios", "directors", "anime", "indian-cinema", "indian-franchises", "moods", "curated", "world-cinema", "indian-studios", "decades", "runtime"]
+    "IN": ["spotlight", "streaming", "indian-cinema", "genres", "moods", "franchises", "studios", "world"],
+    "_default": ["spotlight", "streaming", "genres", "moods", "franchises", "studios", "world", "indian-cinema"]
   },
   "collections": [
     {
@@ -16,7 +16,12 @@
         { "id": "trending-in-india", "title": "Trending in India", "discover": { "movie": { "with_original_language": "hi|te|ta|ml|kn", "primary_release_date.gte": "{{now-120d}}", "primary_release_date.lte": "{{now}}", "sort_by": "popularity.desc", "vote_count.gte": 3 }, "series": { "with_original_language": "hi|te|ta|ml|kn", "first_air_date.gte": "{{now-365d}}", "sort_by": "popularity.desc", "vote_count.gte": 2 } }, "indiaMix": false },
         { "id": "new-releases", "title": "New Releases", "discover": { "movie": { "primary_release_date.gte": "{{now-60d}}", "primary_release_date.lte": "{{now}}", "sort_by": "popularity.desc", "vote_count.gte": 20 }, "series": { "first_air_date.gte": "{{now-60d}}", "first_air_date.lte": "{{now}}", "sort_by": "popularity.desc", "vote_count.gte": 10 } } },
         { "id": "coming-soon", "title": "Coming Soon", "types": ["movie"], "discover": { "movie": { "primary_release_date.gte": "{{now+1d}}", "primary_release_date.lte": "{{now+120d}}", "sort_by": "popularity.desc" } } },
-        { "id": "top-rated", "title": "Top Rated", "discover": { "movie": { "sort_by": "vote_average.desc", "vote_count.gte": 2500 }, "series": { "sort_by": "vote_average.desc", "vote_count.gte": 800 } } }
+        { "id": "top-rated", "title": "Top Rated", "discover": { "movie": { "sort_by": "vote_average.desc", "vote_count.gte": 2500 }, "series": { "sort_by": "vote_average.desc", "vote_count.gte": 800 } } },
+        { "id": "imdb-top-250", "title": "IMDb Top 250", "list": { "movie": "https://mdblist.com/lists/snoak/imdb-top-250-movies/json", "series": "https://mdblist.com/lists/snoak/imdb-top-250-shows/json" } },
+        { "id": "most-watched-this-week", "title": "Most Watched This Week", "types": ["movie"], "list": { "movie": "https://mdblist.com/lists/linaspurinis/top-watched-movies-of-the-week/json" } },
+        { "id": "best-of-the-best", "title": "Best of the Best", "group": ["critically-acclaimed", "best-of-this-year", "hidden-gems", "crowd-pleasers", "highest-grossing"] },
+        { "id": "decades", "title": "Decades", "group": ["2020s", "2010s", "2000s", "1990s", "1980s", "1970s", "1960s", "golden-age"] },
+        { "id": "by-runtime", "title": "By Runtime", "group": ["under-90-minutes", "one-sitting", "epic-length"] }
       ]
     },
     {
@@ -24,17 +29,17 @@
       "title": "Streaming",
       "tileShape": "LANDSCAPE",
       "folders": [
-        { "id": "netflix", "title": "Netflix", "provider": "netflix" },
-        { "id": "prime-video", "title": "Prime Video", "provider": "prime" },
-        { "id": "jiohotstar", "title": "JioHotstar", "provider": "jiohotstar" },
-        { "id": "disney-plus", "title": "Disney+", "provider": "disney" },
-        { "id": "hbo-max", "title": "HBO Max", "provider": "hbomax" },
-        { "id": "apple-tv", "title": "Apple TV", "provider": "apple" },
-        { "id": "sonyliv", "title": "SonyLIV", "provider": "sonyliv" },
-        { "id": "zee5", "title": "ZEE5", "provider": "zee5" },
+        { "id": "netflix", "title": "Netflix", "provider": "netflix", "originals": { "network": 213 } },
+        { "id": "prime-video", "title": "Prime Video", "provider": "prime", "originals": { "network": 1024 } },
+        { "id": "jiohotstar", "title": "JioHotstar", "provider": "jiohotstar", "originals": { "network": 8036, "params": { "vote_count.gte": 5 } } },
+        { "id": "disney-plus", "title": "Disney+", "provider": "disney", "originals": { "network": 2739 } },
+        { "id": "hbo-max", "title": "HBO Max", "provider": "hbomax", "originals": { "network": 49 } },
+        { "id": "apple-tv", "title": "Apple TV", "provider": "apple", "originals": { "network": 2552 } },
+        { "id": "sonyliv", "title": "SonyLIV", "provider": "sonyliv", "originals": { "network": 2646, "params": { "first_air_date.gte": "2019-01-01", "vote_count.gte": 5 } } },
+        { "id": "zee5", "title": "ZEE5", "provider": "zee5", "originals": { "network": 2590, "params": { "first_air_date.gte": "2019-01-01", "vote_count.gte": 5 } } },
         { "id": "aha", "title": "aha", "provider": "aha" },
         { "id": "sun-nxt", "title": "Sun NXT", "provider": "sunnxt" },
-        { "id": "hulu", "title": "Hulu", "provider": "hulu" },
+        { "id": "hulu", "title": "Hulu", "provider": "hulu", "originals": { "network": 453 } },
         { "id": "paramount-plus", "title": "Paramount+", "provider": "paramount" },
         { "id": "peacock", "title": "Peacock", "provider": "peacock" },
         { "id": "mx-player", "title": "MX Player", "provider": "mxplayer" }
@@ -43,7 +48,7 @@
     {
       "id": "indian-cinema",
       "title": "Indian Cinema",
-      "tileShape": "SQUARE",
+      "tileShape": "LANDSCAPE",
       "folders": [
         { "id": "telugu", "title": "Telugu", "language": "te" },
         { "id": "hindi", "title": "Hindi", "language": "hi" },
@@ -55,25 +60,11 @@
         { "id": "punjabi", "title": "Punjabi", "language": "pa" },
         { "id": "gujarati", "title": "Gujarati", "language": "gu" },
         { "id": "pan-india-blockbusters", "title": "Pan-India Blockbusters", "types": ["movie"], "discover": { "movie": { "with_original_language": "te|ta|kn|ml|hi", "sort_by": "revenue.desc", "vote_count.gte": 60 } }, "indiaMix": false },
-        { "id": "indian-web-series", "title": "Indian Web Series", "types": ["series"], "discover": { "series": { "with_origin_country": "IN", "first_air_date.gte": "2016-01-01", "sort_by": "vote_average.desc", "vote_count.gte": 25 } }, "indiaMix": false }
-      ]
-    },
-    {
-      "id": "originals",
-      "title": "Originals",
-      "tileShape": "LANDSCAPE",
-      "folders": [
-        { "id": "netflix-originals", "title": "Netflix Originals", "network": 213 },
-        { "id": "hbo-originals", "title": "HBO Originals", "network": 49 },
-        { "id": "apple-originals", "title": "Apple Originals", "network": 2552 },
-        { "id": "amazon-originals", "title": "Amazon Originals", "network": 1024 },
-        { "id": "disney-plus-originals", "title": "Disney+ Originals", "network": 2739 },
-        { "id": "jiohotstar-specials", "title": "JioHotstar Specials", "network": 8036, "logo": "/f4UwAB8E6DEQfFhyKEH4NEvwYRt.png", "params": { "vote_count.gte": 5 } },
-        { "id": "sonyliv-originals", "title": "SonyLIV Originals", "network": 2646, "params": { "first_air_date.gte": "2019-01-01", "vote_count.gte": 5 } },
-        { "id": "zee5-originals", "title": "ZEE5 Originals", "network": 2590, "params": { "first_air_date.gte": "2019-01-01", "vote_count.gte": 5 } },
-        { "id": "hulu-originals", "title": "Hulu Originals", "network": 453 },
-        { "id": "amc-originals", "title": "AMC Originals", "network": 174 },
-        { "id": "bbc-originals", "title": "BBC Originals", "network": 4 }
+        { "id": "indian-web-series", "title": "Indian Web Series", "types": ["series"], "discover": { "series": { "with_origin_country": "IN", "first_air_date.gte": "2016-01-01", "sort_by": "vote_average.desc", "vote_count.gte": 25 } }, "indiaMix": false },
+        { "id": "indian-universes", "title": "Indian Universes", "group": ["baahubali", "kgf", "pushpa", "kantara", "lokesh-cinematic-universe", "cop-universe", "yrf-spy-universe", "krrish", "dhoom", "drishyam"] },
+        { "id": "comedy-franchises", "title": "Comedy Franchises", "group": ["golmaal", "hera-pheri", "housefull", "munna-bhai"] },
+        { "id": "indian-studios", "title": "Indian Studios", "group": ["hombale-films", "mythri-movie-makers", "yash-raj-films", "dharma-productions", "red-chillies", "geetha-arts", "sithara-entertainments", "arka-media-works", "lyca-productions"] },
+        { "id": "indian-directors", "title": "Indian Directors", "group": ["ss-rajamouli", "mani-ratnam", "rajkumar-hirani", "sukumar", "lokesh-kanagaraj", "sanjay-leela-bhansali", "prashanth-neel", "trivikram-srinivas", "anurag-kashyap", "atlee", "shankar", "sandeep-reddy-vanga"] }
       ]
     },
     {
@@ -103,26 +94,36 @@
       ]
     },
     {
-      "id": "indian-studios",
-      "title": "Indian Studios",
-      "tileShape": "LANDSCAPE",
+      "id": "moods",
+      "title": "Moods & Themes",
+      "tileShape": "POSTER",
       "folders": [
-        { "id": "hombale-films", "title": "Hombale Films", "company": "111627", "types": ["movie"] },
-        { "id": "mythri-movie-makers", "title": "Mythri Movie Makers", "company": "69125", "types": ["movie"] },
-        { "id": "yash-raj-films", "title": "Yash Raj Films", "company": "1569", "types": ["movie"] },
-        { "id": "dharma-productions", "title": "Dharma Productions", "company": "19146", "types": ["movie"] },
-        { "id": "red-chillies", "title": "Red Chillies", "company": "2343", "types": ["movie"] },
-        { "id": "geetha-arts", "title": "Geetha Arts", "company": "38582", "types": ["movie"] },
-        { "id": "sithara-entertainments", "title": "Sithara Entertainments", "company": "107352", "types": ["movie"] },
-        { "id": "arka-media-works", "title": "Arka Media Works", "company": "57946", "types": ["movie"] },
-        { "id": "lyca-productions", "title": "Lyca Productions", "company": "35124", "types": ["movie"] }
+        { "id": "mind-bending", "title": "Mind-Bending", "keyword": "10854|4379|336874", "params": { "sort_by": "vote_average.desc", "vote_count.gte": 300 } },
+        { "id": "feel-good", "title": "Feel-Good", "mood": true, "discover": { "movie": { "with_genres": "35", "vote_average.gte": 6.8, "vote_count.gte": 300, "sort_by": "popularity.desc" } } },
+        { "id": "edge-of-your-seat", "title": "Edge of Your Seat", "mood": true, "discover": { "movie": { "with_genres": "53", "vote_average.gte": 7, "vote_count.gte": 500, "sort_by": "popularity.desc" } } },
+        { "id": "heists", "title": "Heists", "keyword": "10051" },
+        { "id": "true-stories", "title": "True Stories", "keyword": "9672", "params": { "vote_count.gte": 200 } },
+        { "id": "superheroes", "title": "Superheroes", "keyword": "9715", "params": { "vote_count.gte": 200 }, "indiaMix": false },
+        { "id": "time-travel", "title": "Time Travel", "keyword": "4379" },
+        { "id": "post-apocalyptic", "title": "Post-Apocalyptic", "keyword": "4458", "indiaMix": false },
+        { "id": "cyberpunk", "title": "Cyberpunk", "keyword": "12190", "indiaMix": false },
+        { "id": "zombies", "title": "Zombies", "keyword": "12377" },
+        { "id": "martial-arts", "title": "Martial Arts", "keyword": "779" },
+        { "id": "slashers", "title": "Slashers", "keyword": "12339", "indiaMix": false },
+        { "id": "haunted", "title": "Haunted", "keyword": "3358" },
+        { "id": "true-crime", "title": "True Crime", "keyword": "33722" },
+        { "id": "stand-up", "title": "Stand-Up", "keyword": "9716", "params": { "vote_count.gte": 10 } }
       ]
     },
     {
       "id": "franchises",
-      "title": "Franchises",
+      "title": "Franchises & Universes",
       "tileShape": "LANDSCAPE",
       "folders": [
+        { "id": "marvel-cinematic-universe", "title": "Marvel Cinematic Universe", "keyword": "180547", "types": ["movie", "series"], "params": { "sort_by": "primary_release_date.asc", "vote_count.gte": 50 }, "indiaMix": false },
+        { "id": "dc", "title": "DC", "company": "429|9993|128064|184898", "logoCompany": "184898", "types": ["movie"] },
+        { "id": "monsterverse", "title": "MonsterVerse", "keyword": "380322", "types": ["movie", "series"], "params": { "sort_by": "primary_release_date.asc", "vote_count.gte": 0 }, "indiaMix": false },
+        { "id": "conjuring-universe", "title": "The Conjuring Universe", "parts": { "collections": [313086, 402074, 968052], "movies": [480414] } },
         { "id": "harry-potter", "title": "Harry Potter", "collection": 1241 },
         { "id": "the-lord-of-the-rings", "title": "The Lord of the Rings", "collection": 119 },
         { "id": "star-wars", "title": "Star Wars", "collection": 10 },
@@ -153,93 +154,8 @@
       ]
     },
     {
-      "id": "indian-franchises",
-      "title": "Indian Franchises",
-      "tileShape": "LANDSCAPE",
-      "folders": [
-        { "id": "baahubali", "title": "Baahubali", "collection": 350309 },
-        { "id": "kgf", "title": "K.G.F", "collection": 657153 },
-        { "id": "pushpa", "title": "Pushpa", "collection": 921781 },
-        { "id": "kantara", "title": "Kantara", "collection": 1516488 },
-        { "id": "dhoom", "title": "Dhoom", "collection": 44976 },
-        { "id": "krrish", "title": "Krrish", "collection": 246091 },
-        { "id": "singham", "title": "Singham", "collection": 1793488 },
-        { "id": "tiger", "title": "Tiger", "collection": 485645 },
-        { "id": "war-franchise", "title": "War", "wordmark": "War Franchise", "collection": 1717785 },
-        { "id": "drishyam", "title": "Drishyam", "collection": 787649 },
-        { "id": "munna-bhai", "title": "Munna Bhai", "collection": 44722 },
-        { "id": "golmaal", "title": "Golmaal", "collection": 483464 },
-        { "id": "hera-pheri", "title": "Hera Pheri", "collection": 142022 },
-        { "id": "housefull", "title": "Housefull", "collection": 142015 }
-      ]
-    },
-    {
-      "id": "universes",
-      "title": "Universes",
-      "tileShape": "LANDSCAPE",
-      "folders": [
-        { "id": "marvel-cinematic-universe", "title": "Marvel Cinematic Universe", "keyword": "180547", "types": ["movie", "series"], "params": { "sort_by": "primary_release_date.asc", "vote_count.gte": 50 }, "indiaMix": false },
-        { "id": "monsterverse", "title": "MonsterVerse", "keyword": "380322", "types": ["movie", "series"], "params": { "sort_by": "primary_release_date.asc", "vote_count.gte": 0 }, "indiaMix": false },
-        { "id": "lokesh-cinematic-universe", "title": "Lokesh Cinematic Universe", "keyword": "352123", "types": ["movie"], "params": { "sort_by": "primary_release_date.asc", "vote_count.gte": 0 }, "indiaMix": false },
-        { "id": "cop-universe", "title": "Cop Universe", "keyword": "287118", "types": ["movie"], "params": { "sort_by": "primary_release_date.asc", "vote_count.gte": 0 }, "indiaMix": false },
-        { "id": "yrf-spy-universe", "title": "YRF Spy Universe", "parts": { "collections": [485645, 1717785], "movies": [864692] } },
-        { "id": "conjuring-universe", "title": "The Conjuring Universe", "parts": { "collections": [313086, 402074, 968052], "movies": [480414] } },
-        { "id": "dc", "title": "DC", "company": "429|9993|128064|184898", "logoCompany": "184898", "types": ["movie"] }
-      ]
-    },
-    {
-      "id": "directors",
-      "title": "Directors",
-      "tileShape": "POSTER",
-      "folders": [
-        { "id": "christopher-nolan", "title": "Christopher Nolan", "person": 525, "portrait": "/xuAIuYSmsUzKlUMBFGVZaWsY3DZ.jpg" },
-        { "id": "ss-rajamouli", "title": "S. S. Rajamouli", "person": 147021, "portrait": "/qPskSZxvoYflC8Bye4tGNBSroy5.jpg" },
-        { "id": "steven-spielberg", "title": "Steven Spielberg", "person": 488, "portrait": "/tZxcg19YQ3e8fJ0pOs7hjlnmmr6.jpg" },
-        { "id": "mani-ratnam", "title": "Mani Ratnam", "person": 78747, "portrait": "/iXRdku91Hp8nHSL3uWxnInxN6TH.jpg" },
-        { "id": "martin-scorsese", "title": "Martin Scorsese", "person": 1032, "portrait": "/g3DjfKsgZQWZiw30I20hZVk1oMX.jpg" },
-        { "id": "rajkumar-hirani", "title": "Rajkumar Hirani", "person": 85675, "portrait": "/wNnmF3mzG7kyaTYuFr5uMpHIJSw.jpg" },
-        { "id": "quentin-tarantino", "title": "Quentin Tarantino", "person": 138, "portrait": "/1gjcpAa99FAOWGnrUvHEXXsRs7o.jpg" },
-        { "id": "sukumar", "title": "Sukumar", "person": 237051, "portrait": "/7TztELIhekyJrR9jxLyuqBYZ5TF.jpg" },
-        { "id": "denis-villeneuve", "title": "Denis Villeneuve", "person": 137427, "portrait": "/xzQYqb4nR8xT7Zdw5itbEL9K3fd.jpg" },
-        { "id": "lokesh-kanagaraj", "title": "Lokesh Kanagaraj", "person": 1592411, "portrait": "/yym15SAcSzIe6xzxOWCgDWiSaZN.jpg" },
-        { "id": "david-fincher", "title": "David Fincher", "person": 7467, "portrait": "/tpEczFclQZeKAiCeKZZ0adRvtfz.jpg" },
-        { "id": "sanjay-leela-bhansali", "title": "Sanjay Leela Bhansali", "person": 42804, "portrait": "/aQ1TFMLCvemgbfH5BkIwfg20mf4.jpg" },
-        { "id": "stanley-kubrick", "title": "Stanley Kubrick", "person": 240, "portrait": "/yFT0VyIelI9aegZrsAwOG5iVP4v.jpg" },
-        { "id": "prashanth-neel", "title": "Prashanth Neel", "person": 2182258, "portrait": "/oq6ydaurgC4NueXuo64R5QoFnfp.jpg" },
-        { "id": "hayao-miyazaki", "title": "Hayao Miyazaki", "person": 608, "portrait": "/ouhjt9KugzhWtdEyBPipihB3ic8.jpg" },
-        { "id": "trivikram-srinivas", "title": "Trivikram Srinivas", "person": 116923, "portrait": "/i8FMmDxo2tXbKyrpAJWxokeClWI.jpg" },
-        { "id": "bong-joon-ho", "title": "Bong Joon Ho", "person": 21684, "portrait": "/stwnTvZAoD8gEJEDHpDQyLCyDy5.jpg" },
-        { "id": "anurag-kashyap", "title": "Anurag Kashyap", "person": 85670, "portrait": "/wS1aF7dFDnKC44ZbFkbDcIpmFq5.jpg" },
-        { "id": "james-cameron", "title": "James Cameron", "person": 2710, "portrait": "/9NAZnTjBQ9WcXAQEzZpKy4vdQto.jpg" },
-        { "id": "atlee", "title": "Atlee", "person": 1209903, "portrait": "/rySt5J2RBOqQutRFXc2kmqQ1i0K.jpg" },
-        { "id": "ridley-scott", "title": "Ridley Scott", "person": 578, "portrait": "/zABJmN9opmqD4orWl3KSdCaSo7Q.jpg" },
-        { "id": "shankar", "title": "Shankar", "person": 91552, "portrait": "/p9fL8NqPX6m5u9cFDo8suAlunaR.jpg" },
-        { "id": "wes-anderson", "title": "Wes Anderson", "person": 5655, "portrait": "/s03CeUeC5yAXyB1acqP0zGNo2SC.jpg" },
-        { "id": "sandeep-reddy-vanga", "title": "Sandeep Reddy Vanga", "person": 1879517, "portrait": "/ik1rXY6ci6i7LDm9cV178W3txgb.jpg" }
-      ]
-    },
-    {
-      "id": "anime",
-      "title": "Anime",
-      "tileShape": "LANDSCAPE",
-      "folders": [
-        { "id": "anime-popular", "title": "Popular Anime", "discover": { "series": { "with_genres": "16", "with_original_language": "ja", "with_keywords": "210024", "sort_by": "popularity.desc" }, "movie": { "with_genres": "16", "with_original_language": "ja", "with_keywords": "210024", "sort_by": "popularity.desc" } }, "indiaMix": false },
-        { "id": "anime-airing", "title": "Airing This Season", "types": ["series"], "discover": { "series": { "with_genres": "16", "with_original_language": "ja", "air_date.gte": "{{now-30d}}", "air_date.lte": "{{now+7d}}", "sort_by": "popularity.desc" } }, "indiaMix": false },
-        { "id": "anime-top-rated", "title": "Top Rated Anime", "discover": { "series": { "with_genres": "16", "with_original_language": "ja", "with_keywords": "210024", "sort_by": "vote_average.desc", "vote_count.gte": 200 }, "movie": { "with_genres": "16", "with_original_language": "ja", "with_keywords": "210024", "sort_by": "vote_average.desc", "vote_count.gte": 150 } }, "indiaMix": false },
-        { "id": "anime-isekai", "title": "Isekai", "keyword": "237451", "params": { "with_original_language": "ja" }, "indiaMix": false },
-        { "id": "anime-mecha", "title": "Mecha", "keyword": "10046", "params": { "with_original_language": "ja" }, "indiaMix": false },
-        { "id": "anime-manga", "title": "Based on Manga", "keyword": "13141", "params": { "with_genres": "16" }, "indiaMix": false },
-        { "id": "crunchyroll", "title": "Crunchyroll", "provider": "crunchyroll", "types": ["series"] },
-        { "id": "mappa", "title": "MAPPA", "company": "21444" },
-        { "id": "ufotable", "title": "ufotable", "company": "5887" },
-        { "id": "kyoto-animation", "title": "Kyoto Animation", "company": "5438" },
-        { "id": "toei-animation", "title": "Toei Animation", "company": "5542" },
-        { "id": "studio-ghibli", "title": "Studio Ghibli", "company": "10342", "types": ["movie"] }
-      ]
-    },
-    {
       "id": "studios",
-      "title": "Studios",
+      "title": "Studios & Directors",
       "tileShape": "LANDSCAPE",
       "folders": [
         { "id": "marvel-studios", "title": "Marvel Studios", "company": "420" },
@@ -251,50 +167,28 @@
         { "id": "warner-bros", "title": "Warner Bros.", "company": "174", "types": ["movie"] },
         { "id": "universal-pictures", "title": "Universal Pictures", "company": "33", "types": ["movie"] },
         { "id": "legendary", "title": "Legendary", "company": "923", "types": ["movie"] },
-        { "id": "blumhouse", "title": "Blumhouse", "company": "3172", "types": ["movie"] }
+        { "id": "blumhouse", "title": "Blumhouse", "company": "3172", "types": ["movie"] },
+        { "id": "christopher-nolan", "title": "Christopher Nolan", "person": 525, "portrait": "/xuAIuYSmsUzKlUMBFGVZaWsY3DZ.jpg", "tileShape": "POSTER" },
+        { "id": "steven-spielberg", "title": "Steven Spielberg", "person": 488, "portrait": "/tZxcg19YQ3e8fJ0pOs7hjlnmmr6.jpg", "tileShape": "POSTER" },
+        { "id": "martin-scorsese", "title": "Martin Scorsese", "person": 1032, "portrait": "/g3DjfKsgZQWZiw30I20hZVk1oMX.jpg", "tileShape": "POSTER" },
+        { "id": "quentin-tarantino", "title": "Quentin Tarantino", "person": 138, "portrait": "/1gjcpAa99FAOWGnrUvHEXXsRs7o.jpg", "tileShape": "POSTER" },
+        { "id": "denis-villeneuve", "title": "Denis Villeneuve", "person": 137427, "portrait": "/xzQYqb4nR8xT7Zdw5itbEL9K3fd.jpg", "tileShape": "POSTER" },
+        { "id": "david-fincher", "title": "David Fincher", "person": 7467, "portrait": "/tpEczFclQZeKAiCeKZZ0adRvtfz.jpg", "tileShape": "POSTER" },
+        { "id": "stanley-kubrick", "title": "Stanley Kubrick", "person": 240, "portrait": "/yFT0VyIelI9aegZrsAwOG5iVP4v.jpg", "tileShape": "POSTER" },
+        { "id": "hayao-miyazaki", "title": "Hayao Miyazaki", "person": 608, "portrait": "/ouhjt9KugzhWtdEyBPipihB3ic8.jpg", "tileShape": "POSTER" },
+        { "id": "bong-joon-ho", "title": "Bong Joon Ho", "person": 21684, "portrait": "/stwnTvZAoD8gEJEDHpDQyLCyDy5.jpg", "tileShape": "POSTER" },
+        { "id": "james-cameron", "title": "James Cameron", "person": 2710, "portrait": "/9NAZnTjBQ9WcXAQEzZpKy4vdQto.jpg", "tileShape": "POSTER" },
+        { "id": "ridley-scott", "title": "Ridley Scott", "person": 578, "portrait": "/zABJmN9opmqD4orWl3KSdCaSo7Q.jpg", "tileShape": "POSTER" },
+        { "id": "wes-anderson", "title": "Wes Anderson", "person": 5655, "portrait": "/s03CeUeC5yAXyB1acqP0zGNo2SC.jpg", "tileShape": "POSTER" }
       ]
     },
     {
-      "id": "moods",
-      "title": "Moods",
-      "tileShape": "POSTER",
-      "folders": [
-        { "id": "mind-bending", "title": "Mind-Bending", "keyword": "10854|4379|336874", "params": { "sort_by": "vote_average.desc", "vote_count.gte": 300 } },
-        { "id": "feel-good", "title": "Feel-Good", "mood": true, "discover": { "movie": { "with_genres": "35", "vote_average.gte": 6.8, "vote_count.gte": 300, "sort_by": "popularity.desc" } } },
-        { "id": "edge-of-your-seat", "title": "Edge of Your Seat", "mood": true, "discover": { "movie": { "with_genres": "53", "vote_average.gte": 7, "vote_count.gte": 500, "sort_by": "popularity.desc" } } },
-        { "id": "heists", "title": "Heists", "keyword": "10051" },
-        { "id": "true-stories", "title": "True Stories", "keyword": "9672", "params": { "vote_count.gte": 200 } },
-        { "id": "superheroes", "title": "Superheroes", "keyword": "9715", "params": { "vote_count.gte": 200 }, "indiaMix": false },
-        { "id": "time-travel", "title": "Time Travel", "keyword": "4379" },
-        { "id": "post-apocalyptic", "title": "Post-Apocalyptic", "keyword": "4458", "indiaMix": false },
-        { "id": "cyberpunk", "title": "Cyberpunk", "keyword": "12190", "indiaMix": false },
-        { "id": "zombies", "title": "Zombies", "keyword": "12377" },
-        { "id": "martial-arts", "title": "Martial Arts", "keyword": "779" },
-        { "id": "slashers", "title": "Slashers", "keyword": "12339", "indiaMix": false },
-        { "id": "haunted", "title": "Haunted", "keyword": "3358" },
-        { "id": "true-crime", "title": "True Crime", "keyword": "33722" },
-        { "id": "stand-up", "title": "Stand-Up", "keyword": "9716", "params": { "vote_count.gte": 10 } }
-      ]
-    },
-    {
-      "id": "curated",
-      "title": "Curated",
-      "tileShape": "LANDSCAPE",
-      "folders": [
-        { "id": "imdb-top-250", "title": "IMDb Top 250", "list": { "movie": "https://mdblist.com/lists/snoak/imdb-top-250-movies/json", "series": "https://mdblist.com/lists/snoak/imdb-top-250-shows/json" } },
-        { "id": "most-watched-this-week", "title": "Most Watched This Week", "types": ["movie"], "list": { "movie": "https://mdblist.com/lists/linaspurinis/top-watched-movies-of-the-week/json" } },
-        { "id": "critically-acclaimed", "title": "Critically Acclaimed", "discover": { "movie": { "sort_by": "vote_average.desc", "vote_count.gte": 3000 }, "series": { "sort_by": "vote_average.desc", "vote_count.gte": 1500 } } },
-        { "id": "crowd-pleasers", "title": "Crowd Pleasers", "types": ["movie"], "discover": { "movie": { "sort_by": "vote_count.desc", "vote_average.gte": 7 } } },
-        { "id": "highest-grossing", "title": "Highest Grossing", "types": ["movie"], "discover": { "movie": { "sort_by": "revenue.desc", "vote_count.gte": 500 } } },
-        { "id": "best-of-this-year", "title": "Best of This Year", "discover": { "movie": { "primary_release_year": "{{year}}", "sort_by": "vote_average.desc", "vote_count.gte": 200 }, "series": { "first_air_date_year": "{{year}}", "sort_by": "vote_average.desc", "vote_count.gte": 50 } } },
-        { "id": "hidden-gems", "title": "Hidden Gems", "types": ["movie"], "discover": { "movie": { "sort_by": "vote_average.desc", "vote_count.gte": 300, "vote_count.lte": 1500, "primary_release_date.lte": "{{year-3}}-12-31" } } }
-      ]
-    },
-    {
-      "id": "world-cinema",
-      "title": "World Cinema",
+      "id": "world",
+      "title": "World & Anime",
       "tileShape": "SQUARE",
       "folders": [
+        { "id": "anime", "title": "Anime", "group": ["anime-popular", "anime-airing", "anime-top-rated", "anime-isekai", "anime-mecha", "anime-manga", "crunchyroll"] },
+        { "id": "anime-studios", "title": "Anime Studios", "group": ["mappa", "ufotable", "kyoto-animation", "toei-animation", "studio-ghibli"] },
         { "id": "korean", "title": "Korean", "language": "ko" },
         { "id": "japanese", "title": "Japanese", "language": "ja", "params": { "without_keywords": "210024", "without_genres": "16" } },
         { "id": "spanish", "title": "Spanish", "language": "es" },
@@ -308,10 +202,15 @@
       ]
     },
     {
-      "id": "decades",
-      "title": "Decades",
-      "tileShape": "SQUARE",
+      "id": "library",
+      "title": "Library",
+      "hidden": true,
       "folders": [
+        { "id": "critically-acclaimed", "title": "Critically Acclaimed", "discover": { "movie": { "sort_by": "vote_average.desc", "vote_count.gte": 3000 }, "series": { "sort_by": "vote_average.desc", "vote_count.gte": 1500 } } },
+        { "id": "best-of-this-year", "title": "Best of This Year", "discover": { "movie": { "primary_release_year": "{{year}}", "sort_by": "vote_average.desc", "vote_count.gte": 200 }, "series": { "first_air_date_year": "{{year}}", "sort_by": "vote_average.desc", "vote_count.gte": 50 } } },
+        { "id": "hidden-gems", "title": "Hidden Gems", "types": ["movie"], "discover": { "movie": { "sort_by": "vote_average.desc", "vote_count.gte": 300, "vote_count.lte": 1500, "primary_release_date.lte": "{{year-3}}-12-31" } } },
+        { "id": "crowd-pleasers", "title": "Crowd Pleasers", "types": ["movie"], "discover": { "movie": { "sort_by": "vote_count.desc", "vote_average.gte": 7 } } },
+        { "id": "highest-grossing", "title": "Highest Grossing", "types": ["movie"], "discover": { "movie": { "sort_by": "revenue.desc", "vote_count.gte": 500 } } },
         { "id": "2020s", "title": "2020s", "discover": { "movie": { "primary_release_date.gte": "2020-01-01", "primary_release_date.lte": "{{now}}", "sort_by": "popularity.desc", "vote_count.gte": 300 }, "series": { "first_air_date.gte": "2020-01-01", "first_air_date.lte": "{{now}}", "sort_by": "popularity.desc", "vote_count.gte": 100 } } },
         { "id": "2010s", "title": "2010s", "discover": { "movie": { "primary_release_date.gte": "2010-01-01", "primary_release_date.lte": "2019-12-31", "sort_by": "vote_average.desc", "vote_count.gte": 1000 }, "series": { "first_air_date.gte": "2010-01-01", "first_air_date.lte": "2019-12-31", "sort_by": "vote_average.desc", "vote_count.gte": 300 } } },
         { "id": "2000s", "title": "2000s", "discover": { "movie": { "primary_release_date.gte": "2000-01-01", "primary_release_date.lte": "2009-12-31", "sort_by": "vote_average.desc", "vote_count.gte": 1000 }, "series": { "first_air_date.gte": "2000-01-01", "first_air_date.lte": "2009-12-31", "sort_by": "vote_average.desc", "vote_count.gte": 200 } } },
@@ -319,17 +218,57 @@
         { "id": "1980s", "title": "1980s", "types": ["movie"], "discover": { "movie": { "primary_release_date.gte": "1980-01-01", "primary_release_date.lte": "1989-12-31", "sort_by": "vote_average.desc", "vote_count.gte": 500 } } },
         { "id": "1970s", "title": "1970s", "types": ["movie"], "discover": { "movie": { "primary_release_date.gte": "1970-01-01", "primary_release_date.lte": "1979-12-31", "sort_by": "vote_average.desc", "vote_count.gte": 300 } } },
         { "id": "1960s", "title": "1960s", "types": ["movie"], "discover": { "movie": { "primary_release_date.gte": "1960-01-01", "primary_release_date.lte": "1969-12-31", "sort_by": "vote_average.desc", "vote_count.gte": 200 } } },
-        { "id": "golden-age", "title": "Golden Age", "types": ["movie"], "discover": { "movie": { "primary_release_date.lte": "1959-12-31", "sort_by": "vote_average.desc", "vote_count.gte": 200 } } }
-      ]
-    },
-    {
-      "id": "runtime",
-      "title": "By Runtime",
-      "tileShape": "LANDSCAPE",
-      "folders": [
+        { "id": "golden-age", "title": "Golden Age", "types": ["movie"], "discover": { "movie": { "primary_release_date.lte": "1959-12-31", "sort_by": "vote_average.desc", "vote_count.gte": 200 } } },
         { "id": "under-90-minutes", "title": "Under 90 Minutes", "types": ["movie"], "discover": { "movie": { "with_runtime.gte": 40, "with_runtime.lte": 90, "sort_by": "popularity.desc", "vote_count.gte": 200 } } },
         { "id": "one-sitting", "title": "One Sitting", "types": ["movie"], "discover": { "movie": { "with_runtime.lte": 100, "sort_by": "vote_average.desc", "vote_count.gte": 800 } } },
-        { "id": "epic-length", "title": "Epic Length", "types": ["movie"], "discover": { "movie": { "with_runtime.gte": 150, "sort_by": "vote_average.desc", "vote_count.gte": 500 } } }
+        { "id": "epic-length", "title": "Epic Length", "types": ["movie"], "discover": { "movie": { "with_runtime.gte": 150, "sort_by": "vote_average.desc", "vote_count.gte": 500 } } },
+        { "id": "baahubali", "title": "Baahubali", "collection": 350309 },
+        { "id": "kgf", "title": "K.G.F", "collection": 657153 },
+        { "id": "pushpa", "title": "Pushpa", "collection": 921781 },
+        { "id": "kantara", "title": "Kantara", "collection": 1516488 },
+        { "id": "lokesh-cinematic-universe", "title": "Lokesh Cinematic Universe", "keyword": "352123", "types": ["movie"], "params": { "sort_by": "primary_release_date.asc", "vote_count.gte": 0 }, "indiaMix": false },
+        { "id": "cop-universe", "title": "Cop Universe", "keyword": "287118", "types": ["movie"], "params": { "sort_by": "primary_release_date.asc", "vote_count.gte": 0 }, "indiaMix": false },
+        { "id": "yrf-spy-universe", "title": "YRF Spy Universe", "parts": { "collections": [485645, 1717785], "movies": [864692] } },
+        { "id": "krrish", "title": "Krrish", "collection": 246091 },
+        { "id": "dhoom", "title": "Dhoom", "collection": 44976 },
+        { "id": "drishyam", "title": "Drishyam", "collection": 787649 },
+        { "id": "golmaal", "title": "Golmaal", "collection": 483464 },
+        { "id": "hera-pheri", "title": "Hera Pheri", "collection": 142022 },
+        { "id": "housefull", "title": "Housefull", "collection": 142015 },
+        { "id": "munna-bhai", "title": "Munna Bhai", "collection": 44722 },
+        { "id": "hombale-films", "title": "Hombale Films", "company": "111627", "types": ["movie"] },
+        { "id": "mythri-movie-makers", "title": "Mythri Movie Makers", "company": "69125", "types": ["movie"] },
+        { "id": "yash-raj-films", "title": "Yash Raj Films", "company": "1569", "types": ["movie"] },
+        { "id": "dharma-productions", "title": "Dharma Productions", "company": "19146", "types": ["movie"] },
+        { "id": "red-chillies", "title": "Red Chillies", "company": "2343", "types": ["movie"] },
+        { "id": "geetha-arts", "title": "Geetha Arts", "company": "38582", "types": ["movie"] },
+        { "id": "sithara-entertainments", "title": "Sithara Entertainments", "company": "107352", "types": ["movie"] },
+        { "id": "arka-media-works", "title": "Arka Media Works", "company": "57946", "types": ["movie"] },
+        { "id": "lyca-productions", "title": "Lyca Productions", "company": "35124", "types": ["movie"] },
+        { "id": "ss-rajamouli", "title": "S. S. Rajamouli", "person": 147021, "portrait": "/qPskSZxvoYflC8Bye4tGNBSroy5.jpg" },
+        { "id": "mani-ratnam", "title": "Mani Ratnam", "person": 78747, "portrait": "/iXRdku91Hp8nHSL3uWxnInxN6TH.jpg" },
+        { "id": "rajkumar-hirani", "title": "Rajkumar Hirani", "person": 85675, "portrait": "/wNnmF3mzG7kyaTYuFr5uMpHIJSw.jpg" },
+        { "id": "sukumar", "title": "Sukumar", "person": 237051, "portrait": "/7TztELIhekyJrR9jxLyuqBYZ5TF.jpg" },
+        { "id": "lokesh-kanagaraj", "title": "Lokesh Kanagaraj", "person": 1592411, "portrait": "/yym15SAcSzIe6xzxOWCgDWiSaZN.jpg" },
+        { "id": "sanjay-leela-bhansali", "title": "Sanjay Leela Bhansali", "person": 42804, "portrait": "/aQ1TFMLCvemgbfH5BkIwfg20mf4.jpg" },
+        { "id": "prashanth-neel", "title": "Prashanth Neel", "person": 2182258, "portrait": "/oq6ydaurgC4NueXuo64R5QoFnfp.jpg" },
+        { "id": "trivikram-srinivas", "title": "Trivikram Srinivas", "person": 116923, "portrait": "/i8FMmDxo2tXbKyrpAJWxokeClWI.jpg" },
+        { "id": "anurag-kashyap", "title": "Anurag Kashyap", "person": 85670, "portrait": "/wS1aF7dFDnKC44ZbFkbDcIpmFq5.jpg" },
+        { "id": "atlee", "title": "Atlee", "person": 1209903, "portrait": "/rySt5J2RBOqQutRFXc2kmqQ1i0K.jpg" },
+        { "id": "shankar", "title": "Shankar", "person": 91552, "portrait": "/p9fL8NqPX6m5u9cFDo8suAlunaR.jpg" },
+        { "id": "sandeep-reddy-vanga", "title": "Sandeep Reddy Vanga", "person": 1879517, "portrait": "/ik1rXY6ci6i7LDm9cV178W3txgb.jpg" },
+        { "id": "anime-popular", "title": "Popular Anime", "discover": { "series": { "with_genres": "16", "with_original_language": "ja", "with_keywords": "210024", "sort_by": "popularity.desc" }, "movie": { "with_genres": "16", "with_original_language": "ja", "with_keywords": "210024", "sort_by": "popularity.desc" } }, "indiaMix": false },
+        { "id": "anime-airing", "title": "Airing This Season", "types": ["series"], "discover": { "series": { "with_genres": "16", "with_original_language": "ja", "air_date.gte": "{{now-30d}}", "air_date.lte": "{{now+7d}}", "sort_by": "popularity.desc" } }, "indiaMix": false },
+        { "id": "anime-top-rated", "title": "Top Rated Anime", "discover": { "series": { "with_genres": "16", "with_original_language": "ja", "with_keywords": "210024", "sort_by": "vote_average.desc", "vote_count.gte": 200 }, "movie": { "with_genres": "16", "with_original_language": "ja", "with_keywords": "210024", "sort_by": "vote_average.desc", "vote_count.gte": 150 } }, "indiaMix": false },
+        { "id": "anime-isekai", "title": "Isekai", "keyword": "237451", "params": { "with_original_language": "ja" }, "indiaMix": false },
+        { "id": "anime-mecha", "title": "Mecha", "keyword": "10046", "params": { "with_original_language": "ja" }, "indiaMix": false },
+        { "id": "anime-manga", "title": "Based on Manga", "keyword": "13141", "params": { "with_genres": "16" }, "indiaMix": false },
+        { "id": "crunchyroll", "title": "Crunchyroll", "provider": "crunchyroll", "types": ["series"] },
+        { "id": "mappa", "title": "MAPPA", "company": "21444" },
+        { "id": "ufotable", "title": "ufotable", "company": "5887" },
+        { "id": "kyoto-animation", "title": "Kyoto Animation", "company": "5438" },
+        { "id": "toei-animation", "title": "Toei Animation", "company": "5542" },
+        { "id": "studio-ghibli", "title": "Studio Ghibli", "company": "10342", "types": ["movie"] }
       ]
     }
   ]
