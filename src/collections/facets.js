@@ -33,6 +33,10 @@ const FACETS = Object.freeze({
     classic: 'Classics',
     soon: 'Coming Soon',
     saga: 'In Release Order',
+    more: 'More Like This',
+    like: 'Similar Films',
+    cast: 'Leading Faces, Elsewhere',
+    era: 'From the Same Era',
   }),
   series: Object.freeze({
     trend: 'Trending Shows',
@@ -44,19 +48,22 @@ const FACETS = Object.freeze({
   }),
 });
 
-/** Default rows per folder kind, in display order: "facet:type" ("base" = the plain feed). */
+/**
+ * Default rows per folder kind, in display order: "facet:type" ("base" = the plain feed).
+ * Sub-folder rows (data/lenses.json) follow these.
+ */
 const PRESETS = Object.freeze({
   provider: ['trend:movie', 'trend:series', 'orig:series', 'new:movie', 'new:series', 'top:movie', 'top:series'],
   network: ['trend:series', 'new:series', 'top:series', 'air:series'],
-  company: ['base:movie', 'top:movie', 'base:series'],
-  language: ['trend:movie', 'new:movie', 'hits:movie', 'top:movie', 'classic:movie', 'trend:series', 'top:series'],
-  genre: ['trend:movie', 'trend:series', 'new:movie', 'top:movie', 'top:series', 'gems:movie'],
-  keyword: ['base:movie', 'base:series', 'top:movie', 'top:series'],
-  mood: ['base:movie', 'top:movie'],
+  company: ['new:movie', 'hits:movie', 'top:movie', 'gems:movie', 'classic:movie', 'soon:movie', 'base:series'],
+  language: ['trend:movie', 'new:movie', 'hits:movie', 'top:movie', 'gems:movie', 'classic:movie', 'trend:series', 'top:series'],
+  genre: ['trend:movie', 'trend:series', 'new:movie', 'top:movie', 'top:series', 'gems:movie', 'hits:movie'],
+  keyword: ['base:movie', 'base:series', 'new:movie', 'top:movie', 'top:series', 'gems:movie'],
+  mood: ['base:movie', 'top:movie', 'gems:movie'],
   trending: ['trend:movie', 'trend:series'],
-  collection: ['saga:movie', 'top:movie'],
-  parts: ['saga:movie', 'top:movie'],
-  person: ['base:movie', 'top:movie'],
+  collection: ['saga:movie', 'top:movie', 'more:movie', 'cast:movie', 'like:movie', 'era:movie'],
+  parts: ['saga:movie', 'top:movie', 'more:movie', 'cast:movie', 'like:movie', 'era:movie'],
+  person: ['base:movie', 'top:movie', 'more:movie', 'cast:movie', 'like:movie', 'era:movie'],
   discover: ['base:movie', 'base:series'],
   list: ['base:movie', 'base:series'],
 });
@@ -191,7 +198,7 @@ function facetParams(facet, type, kind, params) {
       return p;
     }
     default:
-      return null; // orig and saga are not query rewrites
+      return null; // orig, saga, more, like, cast and era are not query rewrites
   }
 }
 
@@ -206,6 +213,17 @@ function facetOrder(facet, kind) {
   if (facet === 'saga') return 'release';
   if (facet === 'top') return 'top';
   return null;
+}
+
+/** Related-titles facets of list-backed folders: TMDB recommendations or similar films. */
+const RELATED = Object.freeze({ more: 'recommendations', like: 'similar', cast: 'cast', era: 'era' });
+
+/**
+ * The related-titles mode a facet asks of a list-backed folder, or null.
+ * @returns {'recommendations'|'similar'|'cast'|'era'|null}
+ */
+function facetRelated(facet, kind) {
+  return LIST_KINDS.has(kind) && RELATED[facet] ? RELATED[facet] : null;
 }
 
 /**
@@ -263,6 +281,7 @@ module.exports = {
   PRESETS,
   facetParams,
   facetOrder,
+  facetRelated,
   rowCatalogId,
   parseRowCatalogId,
   parseRowSpec,

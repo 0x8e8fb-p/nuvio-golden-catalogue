@@ -2,8 +2,8 @@
 'use strict';
 /**
  * Warm the CDN for a deployed addon: fetch a region's collections pack, then
- * every tile's cover, focus loop, hero still and hero video for the first few
- * collections. A cold hero video takes a few seconds to render; a warm one is
+ * every tile's cover, focus loop, hero still and hero video, and the collection
+ * backdrops, for the first few collections. A cold hero video takes a few seconds to render; a warm one is
  * served from the CDN at once, which is what Nuvio's 8 s player timeout needs.
  *
  *   node scripts/prewarm.js [--url https://addon.example] [--regions IN,US]
@@ -63,6 +63,7 @@ async function main() {
     }
     const pack = await (await fetch(`${opt.url}/r/${region}/collections.json`)).json();
     for (const c of pack.slice(0, opt.collections)) {
+      if (c.backdropImageUrl) urls.push(c.backdropImageUrl);
       for (const f of c.folders) {
         for (const key of ['coverImageUrl', 'focusGifUrl', 'heroBackdropUrl', 'heroVideoUrl']) {
           if (f[key]) urls.push(f[key]);

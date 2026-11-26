@@ -41,11 +41,24 @@ const { onThisWeekWindow, rotationPage } = require('../lib/schedule');
 const { regionTimeZone } = require('../lib/region');
 const { createMdblistSource } = require('../sources/mdblist');
 const { fetchMixedWindow, fetchWindow, TMDB_PAGE, MAX_POSITION } = require('../lib/mix');
-const { CATALOG_IDS, decodeFolderGenre, decodeFolderCatalog, INDIAN_LANGS } = require('../collections/engine');
+const { CATALOG_IDS, decodeFolderGenre, decodeFolderCatalog, rowOwner, INDIAN_LANGS } = require('../collections/engine');
+const { rowCatalogId } = require('../collections/facets');
 const { folderPage } = require('../collections/folder-feed');
 
 const STREMIO_PAGE = 100; // Stremio's default catalogue page size
 const FOLDER_PAGE = 40; // folder tabs page in steps of 40 (declared as pageSize)
+// No title twice on a folder page: a row leaves out the first DEDUPE_HEAD
+// titles of the rows above it (same type), over its first DEDUPE_DEPTH titles.
+// Deeper pages use raw positions; nobody scrolls a row that far to compare.
+const DEDUPE_HEAD = 30; // a screenful and then some: some titles drop out on the way to metas
+const DEDUPE_DEPTH = 120;
+
+/** The list a list-based source reorders ({franchise}, {parts}, {director}), as a key, or null. */
+function listKey(source) {
+  if (!source || Array.isArray(source)) return null;
+  for (const k of ['franchise', 'parts', 'director']) if (source[k]) return `${k}:${JSON.stringify(source[k])}`;
+  return null;
+}
 const SEARCH_FIRST_PAGE = 40; // the first search page covers TMDB's first two pages
 const SEARCH_TOP = 10; // Indian matches move up to follow the top 10 results
 const ROTATE_PAGES = 5; // rotating rows start 0 to 4 pages deep, chosen per day
@@ -162,18 +175,87 @@ function createCatalogHandler(config, deps = {}) {
   }
 
   /** A collection folder row (a folder's plain feed or one of its facets). */
-  async function folder(client, state, type, source, skip) {
+  async function folder(client, state, type, source, skip, catalogId) {
     if (!source) return EMPTY;
-    const fetchSlots = async (start, count) => {
+    const rawSlots = async (start, count) => {
       const page = await folderPage(client, source, type, start, count, { mdblist });
       return page.imdbIds ? page.imdbIds.map((id) => ({ imdbId: id })) : page.items || [];
     };
+    const seen = skip < DEDUPE_DEPTH && catalogId ? await titlesAbove(client, type, source, catalogId) : null;
+    const fetchSlots = seen ? dedupedSlots(rawSlots, seen) : rawSlots;
     const toMetas = (items) =>
       items.length && items[0].imdbId
         ? previewsFromImdbIds(client, items.map((x) => x.imdbId), { stremioType: type, art: 'tile' })
         : toMetaPreviews(client, items, { stremioType: type, art: 'tile' });
     const metas = await pageFrom(fetchSlots, skip, FOLDER_PAGE, toMetas);
     return reply(metas, CACHE_ROW, state);
+  }
+
+  /**
+   * The TMDB ids of the first titles of the rows above this one on its tile
+   * (same type), or null when there is nothing to leave out. Rows of the same
+   * list (a franchise in saga and rating order) and curated lists keep their
+   * titles: there the order is the point.
+   */
+  async function titlesAbove(client, type, source, catalogId) {
+    if (source.list) return null;
+    const owner = rowOwner(type, catalogId, region);
+    if (!owner || owner.index === 0) return null;
+    const own = listKey(source);
+    const above = owner.tile.rows.slice(0, owner.index).filter((row) => row.type === type);
+    // Each row above shows its own stream less the rows above it, so their
+    // heads are worked out top to bottom, as the page shows them.
+    const streams = await Promise.all(
+      above.map(async (row) => {
+        const decoded = decodeFolderCatalog(rowCatalogId(row.type, row.key, row.facet), region);
+        const src = decoded && decoded.source;
+        if (!src || src.list) return null;
+        try {
+          const page = await folderPage(client, src, type, 0, DEDUPE_HEAD + FOLDER_PAGE, { mdblist });
+          return { key: listKey(src), items: page.items || [] };
+        } catch (err) {
+          if (err && err.code === 'NO_TMDB_KEY') throw err;
+          return null;
+        }
+      })
+    );
+    const heads = [];
+    for (const stream of streams) {
+      if (!stream) continue;
+      const avoid = new Set();
+      for (const h of heads) if (!stream.key || h.key !== stream.key) for (const id of h.ids) avoid.add(id);
+      const ids = [];
+      for (const it of stream.items) {
+        if (!it || !it.id || avoid.has(it.id) || ids.includes(it.id)) continue;
+        ids.push(it.id);
+        if (ids.length >= DEDUPE_HEAD) break;
+      }
+      heads.push({ key: stream.key, ids });
+    }
+    const seen = new Set();
+    for (const h of heads) if (!own || h.key !== own) for (const id of h.ids) seen.add(id);
+    return seen.size ? seen : null;
+  }
+
+  /**
+   * A slot reader over the row's stream with `seen` titles left out. Inside
+   * DEDUPE_DEPTH, positions count the filtered stream, read from its start.
+   */
+  function dedupedSlots(rawSlots, seen) {
+    return async (start, count) => {
+      if (start >= DEDUPE_DEPTH) return rawSlots(start, count);
+      const kept = [];
+      let pos = 0;
+      let chunk = start + count + FOLDER_PAGE;
+      while (pos < MAX_POSITION) {
+        const raw = await rawSlots(pos, chunk);
+        for (const it of raw) if (!(it && it.id && seen.has(it.id))) kept.push(it);
+        pos += raw.length;
+        if (kept.length >= start + count || raw.length < chunk) break;
+        chunk = FOLDER_PAGE * 2;
+      }
+      return kept.slice(start, start + count);
+    };
   }
 
   return async function catalogHandler(args) {
@@ -192,7 +274,7 @@ function createCatalogHandler(config, deps = {}) {
     if (engineType && engineType === args.type) {
       if (extra.search) return search(client, state, args.type, String(extra.search).slice(0, 120), skip);
       const decoded = decodeFolderCatalog(args.id, region);
-      if (decoded) return folder(client, state, args.type, decoded.source, skip);
+      if (decoded) return folder(client, state, args.type, decoded.source, skip, args.id);
       const legacy = extra.genre ? decodeFolderGenre(String(extra.genre)) : null;
       if (legacy) return folder(client, state, args.type, legacy.folder.sources[args.type], skip);
       return EMPTY;

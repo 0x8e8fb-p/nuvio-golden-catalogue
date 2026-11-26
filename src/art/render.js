@@ -1078,11 +1078,12 @@ async function renderRankTile({ rank, poster, backdrop } = {}) {
  * whose logo is unusable): darkening, gentle vignette, centred logo or wordmark.
  * Category mode: bottom gradient and a bottom-left wordmark.
  */
-async function coverOverlay(shape, W, H, prep, wordmark, brand = Boolean(prep)) {
+async function coverOverlay(shape, W, H, prep, wordmark, brand = Boolean(prep), decorate = null) {
   const spec = COVER[shape] || COVER.landscape;
   if (brand) {
     const field = newField(W, H, 0.64);
     stackRadial(field, W / 2, H / 2, Math.hypot(W, H) / 2, (d) => 0.45 * smoothstep(0.4, 1.1, d));
+    if (decorate) decorate(field);
     const mark = prep
       ? await fitLogo(prep, W * spec.logoBox[0], H * spec.logoBox[1], COVER_LOGO_AREA)
       : await labelRgba(wordmark, W * spec.logoBox[0], H * spec.logoBox[1]);
@@ -1095,6 +1096,7 @@ async function coverOverlay(shape, W, H, prep, wordmark, brand = Boolean(prep)) 
   }
   const field = newField(W, H);
   stackRows(field, (y) => 0.88 * smoothstep(H * 0.5, H, y + 0.5));
+  if (decorate) decorate(field);
   const margin = Math.round(W * 0.06);
   const label = await labelRgba(wordmark, W * spec.wordBox[0], H * spec.wordBox[1]);
   if (label) {
@@ -1577,4 +1579,32 @@ module.exports = {
   renderFolderHero,
   heroVideoFrames,
   HERO_VIDEO,
+  // Building blocks for motion.js (signature motion).
+  _internals: {
+    COVER,
+    FOCUS,
+    BRAND_BLUR_AT_640,
+    CANVAS_BASE,
+    NOISE,
+    clamp,
+    smoothstep,
+    asBuffer,
+    inspect,
+    loadOptions,
+    newField,
+    stackRows,
+    stackColumns,
+    stackRadial,
+    precompose,
+    applyOverlay,
+    darkCanvas,
+    coverCanvas,
+    coverOverlay,
+    prepareLogo,
+    encodeFrames,
+    encodeJpeg,
+    guard,
+    kenBurnsView,
+    heroShadeField,
+  },
 };

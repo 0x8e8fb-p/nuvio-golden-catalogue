@@ -163,7 +163,7 @@ test('?focus=gif links GIF focus loops, with the same ids', async () => {
   const gif = await (await fetch(`${base}/r/IN/collections.json?focus=gif`)).json();
   const ids = (p) => p.map((c) => [c.id, c.folders.map((f) => f.id)]);
   assert.deepEqual(ids(gif), ids(webp));
-  for (const f of gif.flatMap((c) => c.folders)) assert.match(f.focusGifUrl, /\/focus\.gif\?v=4&shape=(landscape|poster|square)$/);
+  for (const f of gif.flatMap((c) => c.folders)) assert.match(f.focusGifUrl, /\/focus\.gif\?v=5(\.[0-9a-f]{8})?&shape=(landscape|poster|square)$/);
   const html = await (await fetch(`${base}/`)).text();
   assert.ok(html.includes(`${base}/r/US/collections.json?focus=gif`), 'landing page offers the GIF pack');
 });

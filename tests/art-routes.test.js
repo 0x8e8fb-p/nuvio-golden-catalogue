@@ -130,7 +130,7 @@ test('a folder without a brand logo gets its name as a transparent wordmark', as
 });
 
 test('a brand logo that fails to download gives the wordmark, briefly cached and not kept', async () => {
-  const brand = [...regionFolders('IN').folders.values()].find((f) => f.key !== 'netflix' && f.art.logoPath);
+  const brand = [...regionFolders('IN').folders.values()].find((f) => f.key !== 'netflix' && !f.parent && f.art.logoPath);
   assert.ok(brand, 'a brand folder with a verified logo path');
   const wordmark = await wordmarkFor(brand);
 

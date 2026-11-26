@@ -21,8 +21,8 @@
  * repeat the named rows.
  *
  * Folder art: coverImageUrl (static), focusGifUrl (animated loop on focus),
- * heroBackdropUrl (poster wall), heroVideoUrl (a short MP4 of the living
- * poster wall, played once by Nuvio TV's Modern home when the tile is
+ * heroBackdropUrl (the hero still), heroVideoUrl (a short MP4 in the folder's
+ * signature motion, played once by Nuvio TV's Modern home when the tile is
  * focused; it starts and ends on the hero still, so the hand-over is
  * seamless), titleLogoUrl (brand logo or wordmark). backdropImageUrl on a
  * collection is the fallback art for its folders (used by Nuvio mobile).
@@ -33,7 +33,7 @@
 
 const { regionFolders } = require('./engine');
 const { rowCatalogId } = require('./facets');
-const { folderArtUrl } = require('../art/urls');
+const { folderArtUrl, collectionArtUrl } = require('../art/urls');
 const { videoEnabled } = require('../art/video');
 
 const SHAPE_ENUM = { landscape: 'LANDSCAPE', poster: 'POSTER', square: 'SQUARE' };
@@ -63,11 +63,11 @@ function buildPack({ region, origin, addonId, focusFormat = 'webp', motion = tru
   const { collections } = regionFolders(region);
   const withVideo = motion && (video === undefined ? videoEnabled() : Boolean(video));
   return collections.map((collection) => {
-    const first = collection.entries[0];
     return {
       id: `golden-${collection.id}`,
       title: collection.title,
-      backdropImageUrl: folderArtUrl(origin, region, first.key, 'hero'),
+      // A backdrop of its own, not one of its folders' heroes.
+      backdropImageUrl: collectionArtUrl(origin, region, collection.id),
       pinToTop: Boolean(collection.pinToTop),
       focusGlowEnabled: true,
       viewMode: 'FOLLOW_LAYOUT',

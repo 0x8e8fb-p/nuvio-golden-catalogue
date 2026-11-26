@@ -126,9 +126,10 @@ function landingPage(config, opts) {
 </head><body><div class="wrap">
   <p class="eyebrow">For Nuvio and Stremio</p>
   <h1>${name}</h1>
-  <p class="lead">Top 10 rows, cinematic title tiles and a collections tree with moving artwork: every folder has
-    a focus loop and a hero video. Indian and worldwide movies and shows are blended in every row. Pick your
-    country, then add two links to Nuvio.</p>
+  <p class="lead">Top 10 rows, cinematic title tiles and a collections tree of folders and sub-folders. Every
+    folder moves in its own style, from film-reel pull-downs to hologram scans and split-flap boards, and no
+    image is used twice. Indian and worldwide movies and shows are blended in every row. Pick your country,
+    then add two links to Nuvio.</p>
   ${warning}
   <div class="region">
     <label for="region">Country</label>
@@ -146,7 +147,8 @@ function landingPage(config, opts) {
   <div class="step">
     <h2>2. Import Golden Collections</h2>
     <p>Eight sections: streaming services, Indian cinema, genres, moods, franchises, studios and directors, and
-      world cinema. Each folder opens into rows, and plays a hero video on the Modern home layout of Nuvio TV.</p>
+      world cinema. Each folder opens into a full page of rows and sub-folders, with no title twice, and plays a
+      hero video on the Modern home layout of Nuvio TV.</p>
     ${copyRow('pack', first.pack)}
     <div class="path">Nuvio TV: Settings &rsaquo; Content &amp; Discovery &rsaquo; Collections &rsaquo; Import &rsaquo; URL.
       Import again any time to update; your collections are replaced, not duplicated.</div>

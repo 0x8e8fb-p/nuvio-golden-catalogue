@@ -8,10 +8,12 @@
  *   GET /art/logo.png?t&id&ol&v&s         signed: redirect to the best TMDB title logo
  *   GET /art/folder/:region/:key/cover.jpg?v&shape   collection folder cover
  *   GET /art/folder/:region/:key/focus.webp?v&shape  animated focus loop (GIF below Android 9)
- *   GET /art/folder/:region/:key/hero.jpg?v          poster-wall hero backdrop
- *   GET /art/folder/:region/:key/hero.mp4?v          hero video: the poster wall coming alive
+ *   GET /art/folder/:region/:key/hero.jpg?v          hero still (frame 0 of the hero video)
+ *   GET /art/folder/:region/:key/hero.mp4?v          hero video in the folder's signature motion
  *                                                    (H.264, Range requests answered)
  *   GET /art/folder/:region/:key/logo.png?v          transparent folder title logo (home hero)
+ *   GET /art/collection/:region/:id/backdrop.jpg?v   a collection's own backdrop
+ *   GET /art/candidates/:region/:key.json            a tile's candidate titles, for the art plan
  *
  * Images are long-lived on Vercel's CDN (s-maxage), and rendered results are
  * also kept in a small in-memory cache for warm instances. Any failure while
@@ -26,7 +28,9 @@ const { verify } = require('./sign');
 const { getTmdbClient } = require('../tmdb/shared');
 const { fetchTmdbImage, isImagePath } = require('./fetch-image');
 const { bestLogo } = require('./logos');
-const { findFolder, folderArtInputs, folderLogo } = require('./folder-art');
+const { findFolder, folderArtInputs, folderLogo, artCandidates, sampleItems } = require('./folder-art');
+const { regionFolders } = require('../collections/engine');
+const { collectionPlan, plannedPaths } = require('./plan');
 const { normalizeRegion } = require('../lib/region');
 const { videoEnabled, encodeHeroVideo } = require('./video');
 
@@ -107,6 +111,11 @@ let renderer = null;
 function render() {
   if (!renderer) renderer = require('./render');
   return renderer;
+}
+let motionModule = null;
+function motion() {
+  if (!motionModule) motionModule = require('./motion');
+  return motionModule;
 }
 
 /**
@@ -356,7 +365,8 @@ function createArtRouter() {
       if (file === 'cover.jpg') {
         const out = await cachedRender(`cover:${region}:${folder.key}:${shape}`, async () => {
           const { degraded, ...input } = await folderArtInputs(region, folder, 'cover', { shape });
-          const buf = await render().renderFolderCover({ shape, ...input, wordmark: folder.art.wordmark, brand: folder.art.brand });
+          const family = motion().familyFor(folder);
+          const buf = await motion().renderMotionCover({ shape, ...input, wordmark: folder.art.wordmark, brand: folder.art.brand, family });
           return { buf, degraded };
         });
         send(res, out, 'image/jpeg', FOLDER_CACHE);
@@ -366,7 +376,8 @@ function createArtRouter() {
         const format = file.endsWith('.gif') ? 'gif' : 'webp';
         const out = await cachedRender(`focus:${region}:${folder.key}:${shape}:${format}`, async () => {
           const { degraded, ...input } = await folderArtInputs(region, folder, 'focus');
-          const buf = await render().renderFolderFocus({ ...input, wordmark: folder.art.wordmark, format, shape, brand: folder.art.brand });
+          const family = motion().familyFor(folder);
+          const buf = await motion().renderMotionFocus({ ...input, wordmark: folder.art.wordmark, format, shape, brand: folder.art.brand, family });
           return { buf, degraded };
         });
         send(res, out, format === 'gif' ? 'image/gif' : 'image/webp', FOLDER_CACHE);
@@ -374,8 +385,8 @@ function createArtRouter() {
       }
       if (file === 'hero.jpg') {
         const out = await cachedRender(`hero:${region}:${folder.key}`, async () => {
-          const { degraded, ...input } = await folderArtInputs(region, folder, 'hero');
-          const buf = await render().renderFolderHero(input);
+          const { degraded, backdrops } = await folderArtInputs(region, folder, 'hero');
+          const buf = await motion().renderMotionHero({ backdrops, family: motion().familyFor(folder) });
           return { buf, degraded };
         });
         send(res, out, 'image/jpeg', FOLDER_CACHE);
@@ -387,14 +398,14 @@ function createArtRouter() {
           return;
         }
         const out = await cachedRender(`video:${region}:${folder.key}`, async () => {
-          const { degraded, ...input } = await folderArtInputs(region, folder, 'hero');
-          const video = await render().heroVideoFrames(input);
-          // No poster to show: not worth a video. Nuvio keeps the hero still.
+          const { degraded, backdrops } = await folderArtInputs(region, folder, 'hero');
+          const video = await motion().motionVideoFrames({ backdrops, family: motion().familyFor(folder) });
+          // No picture to show: not worth a video. Nuvio keeps the hero still.
           if (!video) return { buf: null, degraded: true };
           return { buf: await encodeHeroVideo(video), degraded };
         });
         if (!out.buf) {
-          res.status(404).set('cache-control', DEGRADED_CACHE).json({ err: 'no posters for a hero video yet' });
+          res.status(404).set('cache-control', DEGRADED_CACHE).json({ err: 'no pictures for a hero video yet' });
           return;
         }
         sendVideo(req, res, out, FOLDER_CACHE);
@@ -408,6 +419,66 @@ function createArtRouter() {
     }
   });
 
+  // A collection's own backdrop: the art plan's image for it, else a title of its
+  // first folder past the ones that folder's own art shows.
+  router.get('/collection/:region/:id/backdrop.jpg', async (req, res) => {
+    try {
+      const region = normalizeRegion(req.params.region);
+      const id = String(req.params.id);
+      const collection = region ? regionFolders(region).collections.find((c) => c.id === id) : null;
+      if (!collection) {
+        res.status(404).set('cache-control', 'public, max-age=300').json({ err: 'unknown collection' });
+        return;
+      }
+      const [path, rawQuery] = splitUrl(req);
+      const given = new URLSearchParams(rawQuery);
+      const keep = new URLSearchParams();
+      if (given.has('v')) keep.set('v', given.get('v'));
+      if ([...given.keys()].length !== [...keep.keys()].length) {
+        res.set('cache-control', REDIRECT_CACHE);
+        res.redirect(301, keep.size ? `${path}?${keep}` : path);
+        return;
+      }
+      const out = await cachedRender(`collection:${region}:${id}`, async () => {
+        let pick = collectionPlan(region, id);
+        let degraded = false;
+        if (!pick) {
+          const first = findFolder(region, collection.entries[0].key);
+          const sample = first ? await sampleItems(region, first, 40) : { items: [], failed: true };
+          const avoid = plannedPaths(region);
+          const free = sample.items.map((it) => it.backdrop_path).filter((p) => isImagePath(p) && !avoid.has(p));
+          // Past the slots the folder's own focus loop and hero take.
+          pick = free[8] || free[free.length - 1] || null;
+          degraded = Boolean(sample.failed);
+        }
+        const buf = pick ? await fetchTmdbImage('w1280', pick) : null;
+        if (!pick || !buf) degraded = true;
+        const jpeg = await motion().renderMotionHero({ backdrops: buf ? [buf] : [], family: motion().collectionFamily(id) });
+        return { buf: jpeg, degraded };
+      });
+      send(res, out, 'image/jpeg', FOLDER_CACHE);
+    } catch (err) {
+      failure(res, err);
+    }
+  });
+  // A tile's candidate titles for scripts/art-plan.js: public TMDB ids and image paths.
+  router.get('/candidates/:region/:file', async (req, res) => {
+    try {
+      const region = normalizeRegion(req.params.region);
+      const m = String(req.params.file).match(/^([a-z0-9-]+)\.json$/);
+      const folder = region && m ? findFolder(region, m[1]) : null;
+      if (!folder) {
+        res.status(404).set('cache-control', 'public, max-age=300').json({ err: 'unknown folder' });
+        return;
+      }
+      const found = await artCandidates(region, folder);
+      res.set('cache-control', found.failed ? 'no-store' : 'public, max-age=3600, s-maxage=21600');
+      res.set('access-control-allow-origin', '*');
+      res.json(found);
+    } catch (err) {
+      failure(res, err);
+    }
+  });
   return router;
 }
 

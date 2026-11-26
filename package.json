@@ -1,6 +1,6 @@
 {
   "name": "nuvio-golden-catalogue",
-  "version": "4.0.0",
+  "version": "5.0.0",
   "description": "Golden Catalogue for Nuvio and Stremio: region-aware home rows, Top 10 rank tiles, generated artwork, hero videos and an importable collections tree, with Indian and worldwide titles blended. Metadata only.",
   "type": "commonjs",
   "main": "src/index.js",

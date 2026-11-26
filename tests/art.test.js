@@ -94,7 +94,7 @@ test('art URLs use the request origin, and need one', () => {
   });
   assert.equal(
     folderArtUrl('https://g.example', 'IN', 'netflix', 'cover', { shape: 'poster' }),
-    'https://g.example/art/folder/IN/netflix/cover.jpg?v=4&shape=poster'
+    `https://g.example/art/folder/IN/netflix/cover.jpg?v=${require('../src/art/plan').folderArtVersion('IN')}&shape=poster`
   );
 });
 

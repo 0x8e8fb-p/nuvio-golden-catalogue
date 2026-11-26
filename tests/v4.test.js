@@ -67,7 +67,8 @@ test('plain folders get facet rows, named by their catalog and in a fixed order'
   const rows = netflix.sources.map((s) => names.get(s.catalogId.split(',')[0]));
   assert.ok(rows.includes('Trending Movies') && rows.includes('Original Series'), rows.join(' | '));
   for (const s of netflix.sources) {
-    assert.equal(s.genre, undefined, 'facet rows take the catalog name as the row title');
+    if (!s.catalogId.includes('--')) assert.equal(s.genre, undefined, 'facet rows take the catalog name as the row title');
+    else assert.ok(s.genre, 'sub-folder rows are named by their genre');
     assert.ok(names.has(s.catalogId.split(',')[0]), `${s.catalogId} declared in the manifest`);
   }
   assert.equal(new Set(netflix.sources.map((s) => s.catalogId)).size, netflix.sources.length, 'no repeated row');
@@ -76,9 +77,9 @@ test('plain folders get facet rows, named by their catalog and in a fixed order'
 test('folders carry a hero video and collections a backdrop', () => {
   const pack = packFor('IN', { video: true });
   for (const c of pack) {
-    assert.match(c.backdropImageUrl, /\/hero\.jpg\?v=4$/);
+    assert.match(c.backdropImageUrl, new RegExp(`^${ORIGIN}/art/collection/IN/${c.id.replace(/^golden-/, "")}/backdrop\\.jpg\\?v=5(\\.[0-9a-f]{8})?$`));
     for (const f of c.folders) {
-      assert.match(f.heroVideoUrl, new RegExp(`^${ORIGIN}/art/folder/IN/[a-z0-9-]+/hero\\.mp4\\?v=4$`));
+      assert.match(f.heroVideoUrl, new RegExp(`^${ORIGIN}/art/folder/IN/[a-z0-9-]+/hero\\.mp4\\?v=5(\\.[0-9a-f]{8})?$`));
       assert.equal(f.focusGifEnabled, true);
     }
   }
@@ -243,7 +244,7 @@ function describeRoute() {
     const prev = process.env.HERO_VIDEO;
     process.env.HERO_VIDEO = 'off';
     try {
-      const res = await fetch(`${base}/art/folder/IN/netflix/hero.mp4?v=4`);
+      const res = await fetch(`${base}/art/folder/IN/netflix/hero.mp4?v=5`);
       assert.equal(res.status, 503);
       assert.equal(res.headers.get('cache-control'), 'no-store');
       const pack = await (await fetch(`${base}/r/IN/collections.json`)).json();
@@ -256,7 +257,7 @@ function describeRoute() {
 
   test('hero.mp4 without posters is a short-lived 404, so Nuvio keeps the still', { skip: !videoEnabled() && 'ffmpeg not available' }, async () => {
     // Tests run without a TMDB key: no posters to show.
-    const res = await fetch(`${base}/art/folder/IN/netflix/hero.mp4?v=4`);
+    const res = await fetch(`${base}/art/folder/IN/netflix/hero.mp4?v=5`);
     assert.equal(res.status, 404);
     assert.doesNotMatch(res.headers.get('cache-control'), /s-maxage=86400/);
   });

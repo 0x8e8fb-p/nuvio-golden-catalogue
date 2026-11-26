@@ -120,7 +120,7 @@ test('pack follows Nuvio import rules', () => {
         assert.ok(rowCatalogs.has(s.catalogId.split(',')[0]), `${s.catalogId} is a manifest catalog`);
         assert.ok(decodeFolderCatalog(s.catalogId, 'IN'), `${f.id} source resolves`);
       }
-      assert.match(f.titleLogoUrl, /\/logo\.png\?v=4$/);
+      assert.match(f.titleLogoUrl, /\/logo\.png\?v=5(\.[0-9a-f]{8})?$/);
     }
   }
   assert.ok(folderIds.size > 100, `pack has ${folderIds.size} folders`);

@@ -13,8 +13,9 @@
  */
 
 const { currentOrigin } = require('../lib/request-context');
-const { buildArtUrl, ART_VERSION } = require('./sign');
+const { buildArtUrl } = require('./sign');
 const { isImagePath } = require('./fetch-image');
+const { folderArtVersion } = require('./plan');
 
 /** Are generated artwork URLs available for the current request? */
 function artEnabled() {
@@ -79,9 +80,19 @@ function logoUrl(a) {
 function folderArtUrl(origin, region, key, kind, opts = {}) {
   const focus = opts.format === 'gif' ? 'focus.gif' : 'focus.webp';
   const file = { cover: 'cover.jpg', focus, hero: 'hero.jpg', video: 'hero.mp4', logo: 'logo.png' }[kind];
-  const qs = new URLSearchParams({ v: ART_VERSION });
+  const qs = new URLSearchParams({ v: folderArtVersion(region) });
   if (opts.shape && (kind === 'cover' || kind === 'focus')) qs.set('shape', opts.shape);
   return `${origin}/art/folder/${encodeURIComponent(region)}/${encodeURIComponent(key)}/${file}?${qs}`;
 }
 
-module.exports = { artEnabled, tileUrl, rankUrl, logoUrl, folderArtUrl };
+/**
+ * A collection's own backdrop (1920x1080), an image no folder of the pack shows.
+ * @param {string} origin public origin
+ * @param {string} region e.g. "IN"
+ * @param {string} id collection id
+ */
+function collectionArtUrl(origin, region, id) {
+  const qs = new URLSearchParams({ v: folderArtVersion(region) });
+  return `${origin}/art/collection/${encodeURIComponent(region)}/${encodeURIComponent(id)}/backdrop.jpg?${qs}`;
+}
+module.exports = { artEnabled, tileUrl, rankUrl, logoUrl, folderArtUrl, collectionArtUrl };
