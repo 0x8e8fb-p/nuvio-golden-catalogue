@@ -68,17 +68,17 @@ function logoUrl(a) {
 }
 
 /**
- * Collection folder art. kind: cover | focus | hero | logo.
+ * Collection folder art. kind: cover | focus | hero | video | logo.
  * @param {string} origin public origin
  * @param {string} region e.g. "IN"
  * @param {string} key folder id
- * @param {'cover'|'focus'|'hero'|'logo'} kind
+ * @param {'cover'|'focus'|'hero'|'video'|'logo'} kind
  * @param {{shape?: string, format?: 'webp'|'gif'}} [opts] format applies to focus loops:
  *   WebP by default; GIF for TVs on Android 8 or older, which cannot animate WebP
  */
 function folderArtUrl(origin, region, key, kind, opts = {}) {
   const focus = opts.format === 'gif' ? 'focus.gif' : 'focus.webp';
-  const file = { cover: 'cover.jpg', focus, hero: 'hero.jpg', logo: 'logo.png' }[kind];
+  const file = { cover: 'cover.jpg', focus, hero: 'hero.jpg', video: 'hero.mp4', logo: 'logo.png' }[kind];
   const qs = new URLSearchParams({ v: ART_VERSION });
   if (opts.shape && (kind === 'cover' || kind === 'focus')) qs.set('shape', opts.shape);
   return `${origin}/art/folder/${encodeURIComponent(region)}/${encodeURIComponent(key)}/${file}?${qs}`;

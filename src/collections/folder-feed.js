@@ -127,7 +127,24 @@ async function folderPage(client, source, type, skip, pageSize, deps) {
     if (err && err.code === 'NO_TMDB_KEY') throw err;
     all = []; // TMDB unavailable: an empty tab, never an error
   }
-  return { items: all.slice(skip, skip + pageSize) };
+  return { items: ordered(all, source.order, Boolean(source.director)).slice(skip, skip + pageSize) };
 }
 
-module.exports = { folderPage, franchiseParts, universeParts, directedFilms, _listCache: listCache };
+/**
+ * A list in the order a folder row asks for. Lists arrive oldest first
+ * (franchises, universes) or newest first (a director's films).
+ *   release: oldest first; newest: newest first; top: best rated first, with
+ *   films that have few votes after the rest, so one 10/10 vote cannot lead.
+ */
+function ordered(items, order, newestFirst) {
+  if (!order) return items;
+  if (order === 'release') return newestFirst ? [...items].sort(byDate) : items;
+  if (order === 'newest') return newestFirst ? items : [...items].sort((a, b) => byDate(b, a));
+  if (order === 'top') {
+    const score = (m) => ((m.vote_count || 0) >= 50 ? 100 : 0) + (Number(m.vote_average) || 0);
+    return [...items].sort((a, b) => score(b) - score(a) || byDate(a, b));
+  }
+  return items;
+}
+
+module.exports = { folderPage, franchiseParts, universeParts, directedFilms, ordered, _listCache: listCache };

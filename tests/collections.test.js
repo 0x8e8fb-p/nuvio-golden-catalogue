@@ -19,9 +19,14 @@ const {
   INDIAN_LANGS,
 } = require('../src/collections/engine');
 const { buildPack } = require('../src/collections/pack');
+const { buildManifest } = require('../src/manifest');
+const { loadConfig } = require('../src/lib/config-loader');
 const { folderPage, _listCache } = require('../src/collections/folder-feed');
 
 const ORIGIN = 'https://golden.example';
+const rowCatalogs = new Set(
+  buildManifest(loadConfig({ fresh: true }), { engine: true }).catalogs.map((c) => c.id).filter((id) => id.startsWith('gc-'))
+);
 const EMOJI_RE = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}]/u;
 
 test('streaming folders follow what each country offers', () => {
@@ -53,9 +58,9 @@ test('the Indian twin lowers the vote floor and keeps the filters', () => {
 
 test('franchise, universe and director folders are movie-only special feeds', () => {
   const f = regionFolders('IN').folders;
-  assert.deepEqual(f.get('kgf').sources, { movie: { franchise: 657153 } });
+  assert.deepEqual(f.get('kgf').sources, { movie: { franchise: 657153, order: 'release' } });
   assert.deepEqual(f.get('conjuring-universe').sources.movie.parts.collections, [313086, 402074, 968052]);
-  assert.deepEqual(f.get('christopher-nolan').sources, { movie: { director: 525 } });
+  assert.deepEqual(f.get('christopher-nolan').sources, { movie: { director: 525, order: 'newest' } });
   assert.deepEqual(f.get('kgf').types, ['movie']);
 });
 
@@ -95,7 +100,8 @@ test('pack follows Nuvio import rules', () => {
   const folderIds = new Set();
   for (const c of pack) {
     assert.match(c.id, /^golden-[a-z0-9-]+$/);
-    assert.equal(c.viewMode, 'TABBED_GRID');
+    assert.equal(c.viewMode, 'FOLLOW_LAYOUT');
+    assert.equal(c.showAllTab, false);
     assert.ok(c.title && !EMOJI_RE.test(c.title));
     for (const f of c.folders) {
       assert.match(f.id, new RegExp(`^${c.id}-`));
@@ -103,21 +109,22 @@ test('pack follows Nuvio import rules', () => {
       folderIds.add(f.id);
       assert.ok(['POSTER', 'LANDSCAPE', 'SQUARE'].includes(f.tileShape));
       assert.ok(!EMOJI_RE.test(f.title));
-      for (const key of ['coverImageUrl', 'focusGifUrl', 'heroBackdropUrl']) {
+      for (const key of ['coverImageUrl', 'focusGifUrl', 'heroBackdropUrl', 'heroVideoUrl']) {
         assert.ok(f[key].startsWith(`${ORIGIN}/art/folder/IN/`), `${f.id} ${key}`);
       }
       assert.ok(f.sources.length > 0);
       for (const s of f.sources) {
         assert.equal(s.provider, 'addon');
         assert.ok(['movie', 'series'].includes(s.type));
-        assert.equal(s.catalogId.split(',')[0], CATALOG_IDS[s.type], 'Nuvio resolves the part before the comma');
+        assert.ok(s.catalogId.split(',')[0].startsWith(CATALOG_IDS[s.type]), 'Nuvio resolves the part before the comma');
+        assert.ok(rowCatalogs.has(s.catalogId.split(',')[0]), `${s.catalogId} is a manifest catalog`);
         assert.ok(decodeFolderCatalog(s.catalogId, 'IN'), `${f.id} source resolves`);
-        assert.equal(s.genre, undefined);
       }
-      assert.match(f.titleLogoUrl, /\/logo\.png\?v=1$/);
+      assert.match(f.titleLogoUrl, /\/logo\.png\?v=4$/);
     }
   }
-  assert.ok(folderIds.size > 150, `pack has ${folderIds.size} folders`);
+  assert.ok(folderIds.size > 100, `pack has ${folderIds.size} folders`);
+  assert.ok(pack.length <= 8, 'few top-level sections');
 });
 
 test('pack ids are stable, so importing again updates in place', () => {
@@ -131,8 +138,8 @@ test('pack ids are stable, so importing again updates in place', () => {
 
 test('cover and focus URLs carry the tile shape so the art matches the tile', () => {
   const pack = buildPack({ region: 'US', origin: ORIGIN, addonId: 'x' });
-  const directors = pack.find((c) => c.id === 'golden-directors');
-  const f = directors.folders[0];
+  const genres = pack.find((c) => c.id === 'golden-genres');
+  const f = genres.folders[0];
   assert.equal(f.tileShape, 'POSTER');
   assert.match(f.coverImageUrl, /shape=poster/);
   assert.match(f.focusGifUrl, /focus\.webp\?.*shape=poster/);

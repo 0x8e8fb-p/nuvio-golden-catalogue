@@ -13,7 +13,7 @@
 const crypto = require('node:crypto');
 
 /** Bump to invalidate every cached artwork URL after a design change. */
-const ART_VERSION = '1';
+const ART_VERSION = '4';
 
 // A signature is the first 22 characters of a base64url HMAC.
 const SIGNATURE_RE = /^[A-Za-z0-9_-]{22}$/;

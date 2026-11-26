@@ -66,7 +66,7 @@ test('rows declare their page size, Top 10 rows a page of 10', () => {
 });
 
 test('rows that need a missing service are left out of that region', () => {
-  const ids = (region) => buildManifest(withRegion(region), { now: NOW }).catalogs.map((c) => c.id);
+  const ids = (region) => buildManifest(withRegion(region), { now: NOW, featuredOnly: false }).catalogs.map((c) => c.id);
   assert.ok(ids('IN').includes('on-jiohotstar'), 'JioHotstar row in India');
   assert.ok(!ids('US').includes('on-jiohotstar'), 'no JioHotstar row in the US');
   assert.ok(ids('US').includes('on-hbo-max'), 'HBO Max row in the US');

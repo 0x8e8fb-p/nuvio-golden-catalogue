@@ -23,6 +23,7 @@ const { buildPack } = require('../src/collections/pack');
 const MANIFEST_LIMIT = 8192; // SDK addonCollection hard limit
 const ID_RE = /^[a-z0-9-]{1,64}$/; // what decodeFolderGenre accepts
 const SHAPES = new Set(['POSTER', 'LANDSCAPE', 'SQUARE']);
+const PACK_LIMIT = 400 * 1024; // keep the import quick on a TV
 const SAMPLE_UNLISTED = 'BR'; // a region without its own provider table
 
 function fail(problems) {
@@ -47,7 +48,8 @@ function checkManifests(config, regions, problems) {
   for (const region of regions) {
     const m = buildManifest(withRegion(worst, region), { engine: true });
     const bytes = Buffer.byteLength(JSON.stringify(m));
-    sizes[region] = { bytes, rows: m.catalogs.length - 2 };
+    const engine = m.catalogs.filter((c) => c.id.startsWith('gc-'));
+    sizes[region] = { bytes, rows: m.catalogs.length - engine.length, engine: engine.map((c) => c.id) };
     if (bytes >= MANIFEST_LIMIT) {
       problems.push(`${region} manifest is ${bytes} bytes, over the ${MANIFEST_LIMIT}-byte SDK limit`);
     }
@@ -55,7 +57,7 @@ function checkManifests(config, regions, problems) {
   return sizes;
 }
 
-function checkCollections(regions, problems) {
+function checkCollections(regions, sizes, problems) {
   const collectionIds = new Set();
   const folderIds = new Map();
   for (const c of PACK.collections) {
@@ -80,8 +82,21 @@ function checkCollections(regions, problems) {
     let folders;
     try {
       ({ folders } = regionFolders(region));
-      const pack = buildPack({ region, origin: 'https://example.invalid', addonId: 'validate' });
-      counts[region] = { collections: pack.length, folders: folders.size };
+      const pack = buildPack({ region, origin: 'https://example.invalid', addonId: 'validate', video: true });
+      const tiles = pack.flatMap((c) => c.folders);
+      const rows = tiles.flatMap((f) => f.sources);
+      const bytes = Buffer.byteLength(JSON.stringify(pack));
+      counts[region] = { collections: pack.length, tiles: tiles.length, rows: rows.length, kb: Math.round(bytes / 1024) };
+      // Nuvio finds a row's catalog by the part of its id before the comma.
+      const declared = new Set(sizes[region].engine);
+      for (const f of tiles) {
+        if (!f.sources.length) problems.push(`${region}: tile "${f.id}" has no rows`);
+        for (const src of f.sources) {
+          const base = src.catalogId.split(',')[0];
+          if (!declared.has(base)) problems.push(`${region}: "${f.id}" row ${src.catalogId} is not a manifest catalog`);
+        }
+      }
+      if (bytes > PACK_LIMIT) problems.push(`${region}: pack is ${bytes} bytes, over ${PACK_LIMIT}`);
     } catch (err) {
       problems.push(`${region}: ${err.message}`);
       continue;
@@ -99,7 +114,7 @@ try {
   const regions = [...knownRegions(), SAMPLE_UNLISTED];
   const problems = [];
   const sizes = checkManifests(config, regions, problems);
-  const counts = checkCollections(regions, problems);
+  const counts = checkCollections(regions, sizes, problems);
   if (problems.length) fail(problems);
 
   console.log(`OK: ${config.catalogues.length} rows, ${PACK.collections.length} collections.`);
@@ -107,7 +122,8 @@ try {
     const s = sizes[region];
     const c = counts[region];
     console.log(
-      `  ${region}  manifest ${s.bytes}/${MANIFEST_LIMIT} bytes, ${s.rows} rows   pack ${c.collections} collections, ${c.folders} folders`
+      `  ${region}  manifest ${s.bytes}/${MANIFEST_LIMIT} bytes, ${s.rows} home rows + ${s.engine.length} folder catalogs   ` +
+        `pack ${c.collections} collections, ${c.tiles} tiles, ${c.rows} rows, ${c.kb} KB`
     );
   }
   process.exit(0);

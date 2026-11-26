@@ -7,12 +7,13 @@
  *   1. Home rows from data/catalogue.config.json. A row reads one TMDB
  *      endpoint, or blends several ("mix": worldwide plus Indian titles), or a
  *      public MDBList list.
- *   2. Collection folders through the two search-only catalogs gc-movie and
- *      gc-series. A folder tab asks for "gc-movie,<folder>" (Nuvio resolves
- *      the catalog by the part before the comma, so pageSize and skip still
- *      apply, and the tab is labelled with the catalog name alone). The older
- *      form, the folder as the genre extra ("IN.netflix"), is still accepted.
- *      Search-only catalogs never appear on Nuvio's Home or Discover screens.
+ *   2. Collection folder rows through the search-only engine catalogs. A row
+ *      asks for "gc-movie,<folder>" (the folder's plain feed) or a facet of it,
+ *      "gc-movie-top,<folder>" ("Top Rated Movies"; see src/collections/facets.js).
+ *      Nuvio resolves the catalog by the part before the comma, so pageSize and
+ *      skip still apply and the row is labelled with that catalog's name. The
+ *      oldest form, the folder as the genre extra ("IN.netflix"), still works.
+ *      These catalogs never appear on Nuvio's Home, Discover or search screens.
  *   3. Search, through the same two catalogs: worldwide and Indian results
  *      are merged, so a search for "Pushpa" or "Interstellar" both work.
  *
@@ -160,9 +161,8 @@ function createCatalogHandler(config, deps = {}) {
     return reply(metas, CACHE_SEARCH, state);
   }
 
-  /** A collection folder tab, for movies or shows. */
-  async function folder(client, state, type, entry, skip) {
-    const source = entry.sources[type];
+  /** A collection folder row (a folder's plain feed or one of its facets). */
+  async function folder(client, state, type, source, skip) {
     if (!source) return EMPTY;
     const fetchSlots = async (start, count) => {
       const page = await folderPage(client, source, type, start, count, { mdblist });
@@ -187,12 +187,14 @@ function createCatalogHandler(config, deps = {}) {
     if (!base.hasKey()) return EMPTY; // no key configured yet: valid empty catalogue
     const { client, state } = watched(base);
 
-    // Collections engine + search (two search-only catalogs per type).
+    // Collections engine + search (search-only catalogs per type).
     const engineType = Object.keys(CATALOG_IDS).find((t) => String(args.id).startsWith(CATALOG_IDS[t]));
     if (engineType && engineType === args.type) {
       if (extra.search) return search(client, state, args.type, String(extra.search).slice(0, 120), skip);
-      const decoded = decodeFolderCatalog(args.id, region) || (extra.genre ? decodeFolderGenre(String(extra.genre)) : null);
-      if (decoded) return folder(client, state, args.type, decoded.folder, skip);
+      const decoded = decodeFolderCatalog(args.id, region);
+      if (decoded) return folder(client, state, args.type, decoded.source, skip);
+      const legacy = extra.genre ? decodeFolderGenre(String(extra.genre)) : null;
+      if (legacy) return folder(client, state, args.type, legacy.folder.sources[args.type], skip);
       return EMPTY;
     }
 

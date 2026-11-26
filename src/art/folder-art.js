@@ -22,9 +22,30 @@ const { mapWithConcurrency } = require('../tmdb/mappers');
 
 const mdblist = createMdblistSource();
 const sampleCache = new TtlLruCache({ ttl: 6 * 60 * 60 * 1000, max: 600 });
+// A group's art mixes titles from this many of its members.
+const GROUP_SAMPLE_MEMBERS = 6;
+
+/** Round-robin merge of item lists, skipping adult titles and repeats. */
+function interleave(lists, n) {
+  const out = [];
+  const seen = new Set();
+  for (let i = 0; out.length < n && lists.some((l) => i < l.length); i++) {
+    for (const list of lists) {
+      const it = list[i];
+      if (!it || it.adult || out.length >= n) continue;
+      const id = `${it.title ? 'm' : 't'}${it.id}`;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      out.push(it);
+    }
+  }
+  return out;
+}
 
 /**
  * Up to `n` raw TMDB items from a folder, alternating its movie and show tabs.
+ * A group folder ("Indian Studios") mixes the samples of its first members,
+ * so its art shows a little of every studio rather than only the first one.
  *
  * `failed` is true when a TMDB key is configured but the titles could not be
  * loaded: a feed threw, or nothing came back. Only a sample that did not fail
@@ -41,6 +62,13 @@ async function sampleItems(region, folder, n = 24) {
   if (hit) return { items: hit, failed: false };
   const client = getTmdbClient();
   if (!client.hasKey()) return { items: [], failed: false };
+  if (folder.members) {
+    const parts = await Promise.all(folder.members.slice(0, GROUP_SAMPLE_MEMBERS).map((m) => sampleItems(region, m, n)));
+    const out = interleave(parts.map((p) => p.items), n);
+    const failed = !out.length || parts.some((p) => p.failed);
+    if (!failed) sampleCache.set(key, out);
+    return { items: out, failed };
+  }
   let failed = false;
   const perType = await Promise.all(
     folder.types.map(async (type) => {
@@ -65,10 +93,7 @@ async function sampleItems(region, folder, n = 24) {
       }
     })
   );
-  const out = [];
-  for (let i = 0; out.length < n && perType.some((l) => i < l.length); i++) {
-    for (const list of perType) if (list[i] && !list[i].adult) out.push(list[i]);
-  }
+  const out = interleave(perType, n);
   // The feeds turn most TMDB errors into empty pages, so with a key configured
   // an empty sample means the titles did not load.
   if (!out.length) failed = true;

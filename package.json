@@ -1,7 +1,7 @@
 {
   "name": "nuvio-golden-catalogue",
-  "version": "3.0.0",
-  "description": "Golden Catalogue for Nuvio and Stremio: region-aware home rows, Top 10 rank tiles, generated artwork and an importable collections pack, with Indian and worldwide titles blended. Metadata only.",
+  "version": "4.0.0",
+  "description": "Golden Catalogue for Nuvio and Stremio: region-aware home rows, Top 10 rank tiles, generated artwork, hero videos and an importable collections tree, with Indian and worldwide titles blended. Metadata only.",
   "type": "commonjs",
   "main": "src/index.js",
   "scripts": {
@@ -10,7 +10,9 @@
     "test": "node --test",
     "validate:config": "node scripts/validate-config.js",
     "ping:tmdb": "node scripts/ping-tmdb.js",
-    "lint": "node scripts/lint.js"
+    "lint": "node scripts/lint.js",
+    "prewarm": "node scripts/prewarm.js",
+    "format:data": "node scripts/format-data.js"
   },
   "engines": {
     "node": ">=20.9.0"
@@ -19,6 +21,7 @@
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "express": "^4.21.2",
+    "ffmpeg-static": "^5.3.0",
     "sharp": "^0.35.5",
     "stremio-addon-sdk": "^1.6.10"
   },

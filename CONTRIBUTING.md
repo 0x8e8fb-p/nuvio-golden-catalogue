@@ -76,6 +76,22 @@ Add an object to the `"folders"` array of a collection in data/collections.json.
 
 Then run `npm run validate:config`. It fails when an id has the wrong format or repeats, a tile shape is unknown, or a folder has no feed in any region. With a key, `npm run ping:tmdb` checks that every tab returns titles and every logo and portrait path exists.
 
+### Nest folders in a group
+
+A group is a tile that opens into one row per member folder, which keeps a collection short. Put the members in the hidden `library` collection (or any collection) and list their ids in the group's `"group"` array:
+
+```json
+{ "id": "indian-universes", "title": "Indian Universes", "group": ["baahubali", "kgf", "pushpa", "kantara"] }
+```
+
+- Members are ordinary folders with their own source field. A member in the `library` collection (`"hidden": true`) has no tile of its own, but keeps its art and rows.
+- The group's cover, focus loop and hero mix pictures from its first six members.
+- A group has no source field of its own. Keep a group to about 12 members, because each member is a row in the folder.
+
+### Rows inside a plain folder
+
+A plain folder opens into a few rows cut from its feed, chosen by its source field in `PRESETS` in [src/collections/facets.js](./src/collections/facets.js), for example `provider` folders get Trending Movies, Trending Shows, Original Series, New and Top Rated rows. A folder can pick its own with `"rows"`, for example `"rows": ["trend:movie", "top:movie", "classic:movie"]`. Row kinds are `base`, `trend`, `new`, `top`, `gems`, `hits`, `classic`, `soon` and `saga` for movies, and `base`, `trend`, `new`, `top`, `air`, `orig` and `classic` for shows. Each kind is one catalog in the manifest, so adding a kind costs manifest bytes.
+
 To add a collection, add an object with `id`, `title`, `tileShape` and `folders` to `"collections"`, and add its id to both lists in `"regionOrder"`. A collection missing from `"regionOrder"` sorts last. Collection ids follow the folder id rules.
 
 ## Add or update a region
@@ -112,17 +128,19 @@ Genre ids are listed in [data/genres.json](./data/genres.json). After adding ids
 ## Rules
 
 - No emojis or decorative symbols in data files, README.md, CONTRIBUTING.md, or code in src, scripts, tests and api. `npm run lint` rejects them. Write menu paths with ">", as in Settings > Addons > Add Addon.
-- Keep the manifest under 8KB. `npm run validate:config` checks every region edition with all time-aware rows switched on. The editions are about 3.4KB today.
-- Collection and folder ids use lowercase a-z, 0-9 and hyphens. Never rename or reuse an existing id. Each folder tab requests the catalog `gc-movie,<folder>` or `gc-series,<folder>`, so a renamed folder id breaks packs that users have already imported. Collection and folder ids also appear in pack ids, as `golden-<collection>` and `golden-<collection>-<folder>`.
+- Keep the manifest under 8KB. `npm run validate:config` checks every region edition with all time-aware rows switched on. The editions are about 4.3KB today, with 11 home rows and 16 folder catalogs.
+- Collection and folder ids use lowercase a-z, 0-9 and hyphens. Never rename or reuse an existing id. Each folder row requests a catalog such as `gc-movie-trend,<folder>` or `gc-series,<folder>`, and art lives under `/art/folder/<CC>/<folder>/`, so a renamed folder id breaks packs that users have already imported. Collection and folder ids also appear in pack ids, as `golden-<collection>` and `golden-<collection>-<folder>`.
 - Verify every TMDB id before adding it.
 - Keep the addon metadata only: no stream scrapers and no debrid or piracy resolvers. Keep IMDb (`tt`) ids, and do not add adult genres or keywords.
 - Never commit secrets. `.env` is gitignored. Document a new variable in .env.example and in the README's environment variable table.
 - Add a test in tests/ for any engine change.
 - Every relative link in README.md must point to a file that exists. `npm run lint` checks this.
+- Keep data files formatted: run `npm run format:data` after editing data/*.json. CI runs `node scripts/format-data.js --check`.
+- Folder art follows the design rules at the top of [src/art/render.js](./src/art/render.js): Bebas Neue only, black-to-transparent shading only, and no text in hero stills or videos (Nuvio draws the folder logo on top). Every WebP focus frame lasts 100 ms. When the art changes, bump `ART_VERSION` in src/art/sign.js so CDNs and Nuvio fetch the new files.
 
 ## Nightly canary
 
-[.github/workflows/nightly.yml](./.github/workflows/nightly.yml) runs every day at 06:00 UTC, and you can also start it from the Actions tab. It runs `npm run validate:config`, then `npm run ping:tmdb` for IN and US with the `TMDB_API_KEY` repository secret. It fails when a row feed or folder tab comes back empty, or when a logo or portrait path is gone from TMDB. That catches TMDB auth problems, renamed endpoints and stale provider, network, keyword or collection ids before users see empty rows.
+[.github/workflows/nightly.yml](./.github/workflows/nightly.yml) runs every day at 06:00 UTC, and you can also start it from the Actions tab. It runs `npm run validate:config`, then `npm run ping:tmdb` for IN and US with the `TMDB_API_KEY` repository secret. It fails when a row feed or folder tab comes back empty, or when a logo or portrait path is gone from TMDB. That catches TMDB auth problems, renamed endpoints and stale provider, network, keyword or collection ids before users see empty rows. Last, `npm run prewarm` renders the art and hero videos of the first two collections for IN and US on the live deployment (set the `ADDON_URL` repository variable for a fork), so the first person to open Nuvio each day gets them from the CDN. That step never fails the job.
 
 When it fails, the job log lists each failed check. Fix the ids in data/ and confirm with `npm run ping:tmdb` locally.
 

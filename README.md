@@ -3,7 +3,7 @@
 [![CI](https://github.com/0x8e8fb-p/nuvio-golden-catalogue/actions/workflows/ci.yml/badge.svg)](https://github.com/0x8e8fb-p/nuvio-golden-catalogue/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
-Golden Catalogue is a Stremio-protocol catalogue addon built for Nuvio on Android TV. It also works in Stremio. This README covers version 3.0.0.
+Golden Catalogue is a Stremio-protocol catalogue addon built for Nuvio on Android TV. It also works in Stremio. This README covers version 4.0.0 (see [docs/UPGRADE-v4.md](./docs/UPGRADE-v4.md) for what changed).
 
 - Metadata only. The addon lists movies and shows with IMDb (`tt`) ids, and your own stream addons handle playback.
 - No adult content. Every TMDB request sets `include_adult=false`, and adult-flagged items are dropped.
@@ -13,8 +13,9 @@ Golden Catalogue is a Stremio-protocol catalogue addon built for Nuvio on Androi
 What it adds to Nuvio:
 
 - Home rows: Top 10 rows with rank tiles, trending, streaming, Indian cinema, genre, anime and curated rows, and rows that follow the local clock.
-- Golden Collections: 17 collections with about 200 folders, imported into Nuvio TV from one URL.
-- Generated artwork: 16:9 title tiles, Top 10 tiles, folder covers and logos, animated focus loops and poster-wall hero backdrops.
+- Golden Collections: 8 collections with about 130 folder tiles in a short tree (some tiles open into rows of sub-folders), imported into Nuvio TV from one URL.
+- Motion: every folder has a hero video (a moving poster wall, H.264 MP4) that plays behind the home hero on Nuvio TV, and an animated focus loop with a slow Ken Burns camera.
+- Generated artwork: 16:9 title tiles, Top 10 tiles, folder covers and logos, focus loops, poster-wall hero backdrops and hero videos.
 - Region editions for any country code, with streaming rows and folders that match what the country offers.
 - Indian and worldwide titles blended in general rows and folders.
 
@@ -24,7 +25,8 @@ You need a deployment first (see [Deploy on Vercel](#deploy-on-vercel)). Below, 
 
 1. Open the landing page at `https://<domain>/` and pick your country. It shows the links below with Copy buttons. For a country that is not in the list, change the code in the links.
 2. Add the addon. In Nuvio, open Settings > Addons > Add Addon and paste `https://<domain>/r/IN/manifest.json`. For the default region, `https://<domain>/manifest.json` also works.
-3. Import the collections. In Nuvio TV, open Settings > Content & Discovery > Collections > Import > URL and paste `https://<domain>/r/IN/collections.json`. Use the same country code as the addon, because the pack points at that edition. Collection and folder ids are stable, so importing the URL again later updates the pack in place instead of duplicating it. Optional: on a TV with Android 8 or older, Nuvio cannot animate WebP and shows a still frame, so import `https://<domain>/r/IN/collections.json?focus=gif` instead to get GIF focus loops. Both URLs give the same collections with the same ids, so importing the other URL later switches either way.
+3. Import the collections. In Nuvio TV, open Settings > Content & Discovery > Collections > Import > URL and paste `https://<domain>/r/IN/collections.json`. Use the same country code as the addon, because the pack points at that edition. Collection and folder ids are stable, so importing the URL again later updates the pack in place instead of duplicating it. Optional: on a TV with Android 8 or older, Nuvio cannot animate WebP and shows a still frame, so import `https://<domain>/r/IN/collections.json?focus=gif` instead to get GIF focus loops. Both URLs give the same collections with the same ids, so importing the other URL later switches either way. For a calm, still pack (no focus loops, no hero videos), import `https://<domain>/r/IN/collections.json?motion=off`.
+   Hero videos play on Nuvio TV's Modern home layout: focus a folder tile, and once scrolling stops its video plays (silently) behind the hero, then hands back to the still (the video starts and ends on the still, so the change is invisible). No setting is needed. If a video cannot load, Nuvio keeps the still. Nuvio's phone app shows the still.
 4. Move Golden Catalogue to the top of the list in Settings > Addons, so its artwork is used for the home screen hero. A metadata addon above it, for example Cinemeta, can replace the hero background and logo. Nuvio's search suggestions while typing come only from the first addon in this list with a search catalog, so at the top Golden Catalogue supplies them (full search results come from every addon with a search catalog).
 
 In Stremio, install the same manifest URL or use the Stremio link on the landing page. Collections are a Nuvio feature, so Stremio gets the rows and search.
@@ -89,38 +91,46 @@ General rows and folders interleave a worldwide feed and an Indian feed by weigh
 - Search in Nuvio keeps TMDB's first 10 results in order, then lists the Indian-language matches among results 11 to 40 ahead of the rest.
 
 ## Golden Collections
-
-The pack has 17 collections and about 200 folders per region: 200 in the US, 201 in India, 198 in GB, AU and DE, 197 in CA and 194 for any other country. Get it from `/r/<CC>/collections.json`, or `/collections.json` for the default region. Folders are defined in [data/collections.json](./data/collections.json).
-
-| Collection | Tile shape | Folders | Examples |
-|---|---|---|---|
-| Spotlight | LANDSCAPE | 5 | Trending Now, Trending in India, New Releases, Coming Soon, Top Rated |
-| Streaming | LANDSCAPE | 14, filtered by country | Netflix, Prime Video, JioHotstar, Disney+, HBO Max, Sun NXT |
-| Indian Cinema | SQUARE | 11 | Telugu, Hindi, Tamil, Malayalam, Pan-India Blockbusters, Indian Web Series |
-| Originals | LANDSCAPE | 11 | Netflix Originals, HBO Originals, JioHotstar Specials, BBC Originals |
-| Genres | POSTER | 19 | Action, Comedy, Thriller, Science Fiction, Kids, Reality |
-| Indian Studios | LANDSCAPE | 9 | Hombale Films, Mythri Movie Makers, Yash Raj Films, Lyca Productions |
-| Franchises | LANDSCAPE | 27 | Harry Potter, Star Wars, James Bond, Mission: Impossible, John Wick |
-| Indian Franchises | LANDSCAPE | 14 | Baahubali, K.G.F, Pushpa, Kantara, Drishyam, Golmaal |
-| Universes | LANDSCAPE | 7 | Marvel Cinematic Universe, MonsterVerse, Lokesh Cinematic Universe, Cop Universe, YRF Spy Universe, The Conjuring Universe, DC |
-| Directors | POSTER | 24 | Christopher Nolan, S. S. Rajamouli, Mani Ratnam, Steven Spielberg, Hayao Miyazaki, Bong Joon Ho |
-| Anime | LANDSCAPE | 12 | Popular Anime, Airing This Season, Isekai, Crunchyroll, Studio Ghibli |
-| Studios | LANDSCAPE | 10 | Marvel Studios, Pixar, A24, Lucasfilm, Blumhouse |
-| Moods | POSTER | 15 | Mind-Bending, Feel-Good, Edge of Your Seat, Heists, Time Travel |
-| Curated | LANDSCAPE | 7 | IMDb Top 250, Most Watched This Week, Critically Acclaimed, Highest Grossing |
-| World Cinema | SQUARE | 10 | Korean, Japanese, Spanish, French, Turkish |
-| Decades | SQUARE | 8 | 2020s, 2010s, 1990s, 1960s, Golden Age |
-| By Runtime | LANDSCAPE | 3 | Under 90 Minutes, One Sitting, Epic Length |
-
-- The table follows the India edition's order. Other editions move Indian Cinema, Indian Franchises and Indian Studios further down (`"regionOrder"` in data/collections.json).
-- Each folder has Movies and Shows tabs where both exist. Franchise and director folders are movies only, as are several studio, universe and genre folders. Originals folders are shows only.
-- Directors folders list only films the person directed.
-- Streaming folders follow what the country offers: 8 in the US, 9 in India, 6 in GB, AU and DE, 5 in CA and 3 elsewhere.
+The pack has 8 collections and about 130 folder tiles per region (133 in India, 132 in the US, 130 in GB, AU and DE, 129 in CA and 127 for any other country), with about 530 rows behind them. Get it from `/r/<CC>/collections.json`, or `/collections.json` for the default region. Folders are defined in [data/collections.json](./data/collections.json).
+v3 had 17 collections side by side. v4 folds them into a short tree: a few top-level sections, and tiles that open into rows of related folders where a list would otherwise be long.
+```text
+Spotlight              Trending Now, New Releases, Coming Soon, Top Rated, IMDb Top 250, ...
+  Best of the Best     > Critically Acclaimed, Best of This Year, Hidden Gems, Crowd Pleasers, Highest Grossing
+  Decades              > 2020s, 2010s, 2000s, 1990s, 1980s, 1970s, 1960s, Golden Age
+  By Runtime           > Under 90 Minutes, One Sitting, Epic Length
+Streaming              Netflix, Prime Video, JioHotstar, Apple TV, ... (filtered by country)
+Indian Cinema          Telugu, Hindi, Tamil, Malayalam, Kannada, ..., Pan-India Blockbusters, Indian Web Series
+  Indian Universes     > Baahubali, K.G.F, Pushpa, Kantara, Lokesh Cinematic Universe, Cop Universe, ...
+  Comedy Franchises    > Golmaal, Hera Pheri, Housefull, Munna Bhai
+  Indian Studios       > Hombale Films, Mythri Movie Makers, Yash Raj Films, Dharma Productions, ...
+  Indian Directors     > S. S. Rajamouli, Mani Ratnam, Rajkumar Hirani, Sukumar, Lokesh Kanagaraj, ...
+Genres                 Action, Comedy, Drama, Thriller, Horror, Science Fiction, ... (19)
+Moods & Themes         Mind-Bending, Feel-Good, Edge of Your Seat, Heists, True Stories, ... (15)
+Franchises & Universes Marvel Cinematic Universe, DC, MonsterVerse, Harry Potter, Star Wars, ... (31)
+Studios & Directors    Marvel Studios, Pixar, A24, ..., Christopher Nolan, Denis Villeneuve, Hayao Miyazaki, ...
+World & Anime          Korean, Japanese, Spanish, French, ...
+  Anime                > Popular Anime, Airing This Season, Top Rated Anime, Isekai, Mecha, Crunchyroll, ...
+  Anime Studios        > MAPPA, ufotable, Kyoto Animation, Toei Animation, Studio Ghibli
+```
+| Collection | Tile shape | Tiles (India) |
+|---|---|---|
+| Spotlight | LANDSCAPE | 10 |
+| Streaming | LANDSCAPE | 9, filtered by country |
+| Indian Cinema | LANDSCAPE | 15 |
+| Genres | POSTER | 19 |
+| Moods & Themes | POSTER | 15 |
+| Franchises & Universes | LANDSCAPE | 31 |
+| Studios & Directors | LANDSCAPE | 22 |
+| World & Anime | SQUARE | 12 |
+- The table follows the India edition's order. Other editions move Indian Cinema to the end (`"regionOrder"` in data/collections.json).
+- Collections open in Nuvio's Follow Layout view, so a folder shows its rows the way the home screen does, with no All tab.
+- A plain folder opens into a few rows cut from its feed, for example Netflix: Trending Movies, Trending Shows, Original Series, New Movies, New Shows, Top Rated Movies and Top Rated Shows. Which rows a folder gets depends on its source (`PRESETS` in [src/collections/facets.js](./src/collections/facets.js)): a franchise gets In Release Order and Top Rated Movies, a network gets Airing This Week, a language gets Blockbusters and Classics.
+- A group tile (marked `>` above) opens into one row per member folder, named after it, for example "Movies · Hombale Films".
+- Franchise and director folders are movies only, as are several studio, universe and genre folders. Directors folders list only films the person directed.
 - If a user turns on Nuvio's Hide Unreleased Content setting (off by default), the Coming Soon folder can be empty.
-- Folders reach the addon through two search-only catalogs, `gc-movie` (named Movies) and `gc-series` (named Shows). Nuvio never shows search-only catalogs on Home or in Discover, so they add no clutter. The same two catalogs serve Nuvio's search.
-- Each folder tab is a source `{ provider: "addon", addonId, type, catalogId: "gc-movie,<folder-id>" }`, or `"gc-series,<folder-id>"` for shows, with no genre. Nuvio resolves a source's catalog by the part before the first comma, so the tab uses the declared `gc-movie` or `gc-series` catalog: 40 titles per page, paging with `skip`, and the catalog name, Movies or Shows, as the tab label. The region comes from the edition the addon was installed from.
-- Packs imported earlier name the folder in the genre extra instead, for example `genre=IN.netflix`. That form still works.
-
+- Rows reach the addon through 16 search-only catalogs: `gc-movie` (Movies) and `gc-series` (Shows) for whole feeds and group rows, and one per row kind, such as `gc-movie-trend` (Trending Movies) and `gc-series-orig` (Original Series). Nuvio never shows search-only catalogs on Home or in Discover, so they add no clutter, and the facet catalogs also require a genre, so they stay out of search.
+- Each row is a source `{ provider: "addon", addonId, type, catalogId: "<catalog>,<folder-id>" }`, for example `gc-movie-trend,netflix`. Nuvio resolves a source's catalog by the part before the first comma and names the row after that catalog. Group rows add `genre: "<member title>"`, which Nuvio appends to the row name. Rows have 40 titles per page and page with `skip`. The region comes from the edition the addon was installed from.
+- Packs imported from v3 (`gc-movie,<folder-id>` with no genre) and v2 (`genre=IN.netflix`) keep working.
 ## Generated artwork
 
 The server renders artwork with sharp and the Bebas Neue font. Complete images carry long cache headers (30 days at the CDN for item art, 1 day plus a week of stale-while-revalidate for folder art), so Vercel's CDN serves repeat requests. An image drawn after an input failed to load (a download or a TMDB lookup) is sent with `Cache-Control: public, max-age=60, s-maxage=300` and is not kept in memory, so it is tried again soon. Catalog pages built after a TMDB failure carry no cache headers.
@@ -130,14 +140,16 @@ The server renders artwork with sharp and the Bebas Neue font. Complete images c
 | Title tile | 960x540 JPEG | Backdrop with the title's logo, or the title set in Bebas Neue when there is no logo. A title without a backdrop gets a poster layout: the poster blurred and darkened as the background, the poster as a rounded card on the right, and the logo or title on the left. This keeps many Indian titles in rows and folders. |
 | Top 10 tile | 960x540 JPEG | Poster over a blurred backdrop, with a big outlined rank numeral |
 | Folder cover | 640x360 (LANDSCAPE), 405x600 (POSTER), 600x600 (SQUARE) JPEG | Drawn at the shape of the folder's tile, because Nuvio stretches images to the tile. A POSTER tile is 0.675 wide per unit of height. Streaming services, networks and studios show their logo, directors their portrait, and categories their name. Folder tiles hide their text, because the cover already shows the name or logo. |
-| Focus loop | 416x234 (LANDSCAPE), 243x360 (POSTER), 300x300 (SQUARE) animated WebP, about 70 to 140 KB | Plays when a folder is focused |
-| Hero backdrop | 1920x1080 JPEG | Poster wall built from the folder's titles |
+| Focus loop | 416x234 (LANDSCAPE), 243x360 (POSTER), 300x300 (SQUARE) animated WebP, about 120 to 460 KB | Plays when a folder is focused: a slow Ken Burns camera over three of the folder's backdrops, 42 frames at 100 ms |
+| Hero backdrop | 1920x1080 JPEG | Tilted poster wall built from the folder's titles |
+| Hero video | 1280x720 H.264 MP4, 6 s loop at 30 fps, about 1.5 MB | The hero backdrop's poster wall in motion: alternate columns drift up and down and return to the still, so the loop is seamless. No text, because Nuvio draws the folder logo on top. |
 | Folder logo | Transparent PNG, up to 1200x480 | The brand logo, with dark logos turned white and the dark parts of two-tone logos lifted, or the folder name set in Bebas Neue. The pack links it as the folder's `titleLogoUrl`, and Nuvio shows it on the home hero when the folder is focused. |
 
 - Logos: a title tile uses the English logo first, then one in the title's original language, then one without a language. Indian films therefore show their English or original-language logo.
-- Focus loops: Nuvio animates WebP on Android 9 and newer. Older TVs show a still frame. A GIF version, about 400 to 550 KB, is served at the same path, with `focus.gif` in place of `focus.webp`. It has one crossfade frame between pictures instead of four, and no dithering.
+- Focus loops: Nuvio animates WebP on Android 9 and newer. Older TVs show a still frame. Every WebP frame lasts exactly 100 ms, because Nuvio on iOS plays WebP frames at a fixed 100 ms whatever the file says; v3's long holds flashed by there. A GIF version, about 400 to 550 KB, is served at the same path, with `focus.gif` in place of `focus.webp`. It holds each picture and crossfades, with no dithering.
+- Hero videos: rendered on demand. The server builds each frame from the hero still's poster columns (pre-rotated once, then shifted per frame), pipes raw frames into ffmpeg (from the `ffmpeg-static` package), and encodes H.264 High profile, yuv420p, about 2 Mbps, with the index at the front (`+faststart`) so playback starts at once. A cold render takes about 4 to 5 seconds on one Vercel vCPU, inside Nuvio TV's 8-second player timeout; after that the CDN serves it. `hero.mp4` answers byte-range requests (206) for seeking. A folder with no posters yet gets a short-lived 404, and Nuvio keeps the still. `npm run prewarm` (also run nightly) renders the most visible ones ahead of time.
 - GIF edition: `/r/<CC>/collections.json?focus=gif`, or `/collections.json?focus=gif` for the default region, is the same pack with folders that link `focus.gif` instead of `focus.webp`. It is for TVs on Android 8 or older. Importing it replaces the same collections, because the ids do not change, so a user can switch either way by importing the other URL. The landing page shows both links.
-- Paths: item art is served from `/art/tile.jpg`, `/art/rank.jpg` and `/art/logo.png`. Folder art is served from `/art/folder/<CC>/<folder-id>/` as `cover.jpg`, `focus.webp`, `focus.gif`, `hero.jpg` and `logo.png`. A folder art URL with unknown query parameters or an invalid shape redirects (301) to the canonical URL.
+- Paths: item art is served from `/art/tile.jpg`, `/art/rank.jpg` and `/art/logo.png`. Folder art is served from `/art/folder/<CC>/<folder-id>/` as `cover.jpg`, `focus.webp`, `focus.gif`, `hero.jpg`, `hero.mp4` and `logo.png`, with `?v=4` (and `&shape=` for covers and focus loops). A folder art URL with unknown query parameters or an invalid shape redirects (301) to the canonical URL.
 - Signing: item art URLs carry an HMAC signature keyed with `ART_SECRET`, or with a secret derived from `TMDB_API_KEY`, so the deployment cannot be used as a free image service. A bad signature gets HTTP 403. Folder art URLs are not signed, so imported packs keep working if the secret changes.
 - `ART_MODE=posters` turns off generated title tiles, Top 10 tiles and title logos. Rows then use plain TMDB backdrops and posters. Folder art in the pack is still generated.
 
@@ -171,6 +183,7 @@ The 17 preset slugs removed after v2 still work, for example `/c/movies/manifest
 | `/collections.json` | Golden Collections pack for the default region |
 | `/r/<CC>/collections.json?focus=gif` | GIF edition of a region's pack, for TVs on Android 8 or older |
 | `/collections.json?focus=gif` | GIF edition of the default region's pack |
+| `/r/<CC>/collections.json?motion=off` | Still edition: no focus loops and no hero videos |
 | `/r/<CC>/c/<preset>/manifest.json` | Preset in a region |
 | `/c/<preset>/manifest.json` | Preset in the default region |
 | `/presets.json` | Preset list with slug, name and row count |
@@ -213,6 +226,9 @@ Set these in Vercel under Project > Settings > Environment Variables, or in `.en
 | `TMDB_API_BASE` | `https://api.themoviedb.org/3` | TMDB API host, for a mirror or a mock. If api.themoviedb.org is blocked on your network, as on some Indian ISPs, `https://api.tmdb.org/3` works for local runs. |
 | `TMDB_IMAGE_BASE` | `https://image.tmdb.org/t/p` | Host the art renderer downloads source images from, for a mirror or a mock |
 | `PING_REGIONS` | `IN,US` | Countries checked by `npm run ping:tmdb` |
+| `HERO_VIDEO` | on | `off` drops hero videos from the pack and answers `hero.mp4` with 503 |
+| `FFMPEG_PATH` | the `ffmpeg-static` binary | ffmpeg used for hero videos. Without one, hero videos are off. |
+| `ADDON_URL` | the public deployment | Addon `npm run prewarm` warms. In GitHub Actions, set it as a repository variable. |
 
 ## Local development
 
@@ -323,8 +339,8 @@ src/manifest.js        Config to manifest: featured rows, region filter, search-
 src/presets.js         Preset definitions
 src/landing.js         Landing page
 src/handlers/          catalog.js (rows, search, folders), meta.js (detail pages)
-src/collections/       engine.js (folders per region), pack.js (Nuvio pack), folder-feed.js (folder pages)
-src/art/               render, routes, sign, urls, fetch-image, logos, folder-art, sharp
+src/collections/       engine.js (folder tree per region), facets.js (row kinds), pack.js (Nuvio pack), folder-feed.js (folder pages)
+src/art/               render, video (hero MP4 via ffmpeg), routes, sign, urls, fetch-image, logos, folder-art, sharp
 src/lib/               mix, region, schedule, templating, cache, circuit-breaker, request-context, config-loader
 src/tmdb/              TMDB client, mappers, detail pages
 src/sources/           mdblist.js, anilist.js
@@ -332,9 +348,10 @@ src/images/fanart.js   fanart.tv logos for detail pages
 data/                  catalogue.config.json, collections.json, providers.json, genres.json
 schema/                catalogue.schema.json
 assets/fonts/          Bebas Neue and its licence
-scripts/               lint.js, validate-config.js, ping-tmdb.js
+scripts/               lint.js, validate-config.js, format-data.js, ping-tmdb.js, prewarm.js
 tests/                 node --test suites
-vercel.json            Sends every path to api/index.js
+vercel.json            Sends every path to api/index.js; bundles data, fonts and the ffmpeg binary
+docs/                  UPGRADE-v4.md (research and changes behind v4)
 .github/workflows/     ci.yml, nightly.yml
 ```
 

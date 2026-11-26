@@ -1,7 +1,7 @@
 {
   "addon": {
     "id": "com.nuvio.golden.catalogue",
-    "version": "3.0.0",
+    "version": "4.0.0",
     "name": "Golden Catalogue",
     "description": "A complete, region-aware home for Nuvio and Stremio: Top 10 rows, cinematic title tiles, Indian and worldwide cinema blended in every row, and the Golden Collections pack. Metadata only; your stream addons handle playback.",
     "logo": "https://image.tmdb.org/t/p/w500/wwemzKWzjKYJFfCeiB57q3r4Bcm.png",
@@ -134,7 +134,8 @@
         "endpoint": "/discover/movie",
         "params": { "with_original_language": "te|ta|ml|kn", "primary_release_date.gte": "{{year-4}}-01-01", "sort_by": "popularity.desc", "vote_count.gte": 15 }
       },
-      "extra": [{ "name": "skip" }]
+      "extra": [{ "name": "skip" }],
+      "featured": false
     },
     {
       "id": "bollywood",
@@ -146,7 +147,8 @@
         "endpoint": "/discover/movie",
         "params": { "with_original_language": "hi", "primary_release_date.gte": "{{year-4}}-01-01", "sort_by": "popularity.desc", "vote_count.gte": 15 }
       },
-      "extra": [{ "name": "skip" }]
+      "extra": [{ "name": "skip" }],
+      "featured": false
     },
     {
       "id": "on-netflix",
@@ -158,7 +160,8 @@
         "endpoint": "/discover/movie",
         "params": { "with_watch_providers": "{{provider:netflix}}", "watch_region": "{{region}}", "with_watch_monetization_types": "flatrate|free|ads", "sort_by": "popularity.desc", "vote_count.gte": 20 }
       },
-      "extra": [{ "name": "skip" }]
+      "extra": [{ "name": "skip" }],
+      "featured": false
     },
     {
       "id": "on-prime-video",
@@ -170,7 +173,8 @@
         "endpoint": "/discover/movie",
         "params": { "with_watch_providers": "{{provider:prime}}", "watch_region": "{{region}}", "with_watch_monetization_types": "flatrate|free|ads", "sort_by": "popularity.desc", "vote_count.gte": 20 }
       },
-      "extra": [{ "name": "skip" }]
+      "extra": [{ "name": "skip" }],
+      "featured": false
     },
     {
       "id": "on-jiohotstar",
@@ -182,7 +186,8 @@
         "endpoint": "/discover/tv",
         "params": { "with_watch_providers": "{{provider:jiohotstar}}", "watch_region": "{{region}}", "with_watch_monetization_types": "flatrate|free|ads", "sort_by": "popularity.desc", "vote_count.gte": 10 }
       },
-      "extra": [{ "name": "skip" }]
+      "extra": [{ "name": "skip" }],
+      "featured": false
     },
     {
       "id": "on-disney-plus",
@@ -194,7 +199,8 @@
         "endpoint": "/discover/movie",
         "params": { "with_watch_providers": "{{provider:disney}}", "watch_region": "{{region}}", "with_watch_monetization_types": "flatrate|free|ads", "sort_by": "popularity.desc", "vote_count.gte": 20 }
       },
-      "extra": [{ "name": "skip" }]
+      "extra": [{ "name": "skip" }],
+      "featured": false
     },
     {
       "id": "on-hbo-max",
@@ -206,7 +212,8 @@
         "endpoint": "/discover/tv",
         "params": { "with_watch_providers": "{{provider:hbomax}}", "watch_region": "{{region}}", "with_watch_monetization_types": "flatrate|free|ads", "sort_by": "popularity.desc", "vote_count.gte": 20 }
       },
-      "extra": [{ "name": "skip" }]
+      "extra": [{ "name": "skip" }],
+      "featured": false
     },
     {
       "id": "on-aha",
@@ -218,7 +225,8 @@
         "endpoint": "/discover/movie",
         "params": { "with_watch_providers": "{{provider:aha}}", "watch_region": "{{region}}", "with_watch_monetization_types": "flatrate|free|ads", "sort_by": "popularity.desc", "vote_count.gte": 3 }
       },
-      "extra": [{ "name": "skip" }]
+      "extra": [{ "name": "skip" }],
+      "featured": false
     },
     {
       "id": "action-thrillers",
@@ -232,7 +240,8 @@
           { "endpoint": "/discover/movie", "params": { "with_genres": "28|53", "with_original_language": "hi|te|ta|ml|kn", "sort_by": "popularity.desc", "vote_count.gte": 25 }, "weight": 1 }
         ]
       },
-      "extra": [{ "name": "skip" }]
+      "extra": [{ "name": "skip" }],
+      "featured": false
     },
     {
       "id": "comedy",
@@ -246,7 +255,8 @@
           { "endpoint": "/discover/movie", "params": { "with_genres": "35", "with_original_language": "hi|te|ta|ml|kn", "sort_by": "popularity.desc", "vote_count.gte": 20 }, "weight": 1 }
         ]
       },
-      "extra": [{ "name": "skip" }]
+      "extra": [{ "name": "skip" }],
+      "featured": false
     },
     {
       "id": "crime-dramas",
@@ -260,7 +270,8 @@
           { "endpoint": "/discover/tv", "params": { "with_genres": "80", "with_origin_country": "IN", "sort_by": "vote_average.desc", "vote_count.gte": 10 }, "weight": 1 }
         ]
       },
-      "extra": [{ "name": "skip" }]
+      "extra": [{ "name": "skip" }],
+      "featured": false
     },
     {
       "id": "sci-fi-and-fantasy",
@@ -272,7 +283,8 @@
         "endpoint": "/discover/tv",
         "params": { "with_genres": "10765", "without_genres": "16", "sort_by": "popularity.desc", "vote_count.gte": 200 }
       },
-      "extra": [{ "name": "skip" }]
+      "extra": [{ "name": "skip" }],
+      "featured": false
     },
     {
       "id": "family-night",
@@ -286,7 +298,8 @@
           { "endpoint": "/discover/movie", "params": { "with_genres": "10751|35", "with_original_language": "hi|te|ta|ml|kn", "vote_average.gte": 6.5, "sort_by": "popularity.desc", "vote_count.gte": 20 }, "weight": 1 }
         ]
       },
-      "extra": [{ "name": "skip" }]
+      "extra": [{ "name": "skip" }],
+      "featured": false
     },
     {
       "id": "horror",
@@ -300,7 +313,8 @@
           { "endpoint": "/discover/movie", "params": { "with_genres": "27", "with_original_language": "hi|te|ta|ml|kn", "sort_by": "popularity.desc", "vote_count.gte": 10 }, "weight": 1 }
         ]
       },
-      "extra": [{ "name": "skip" }]
+      "extra": [{ "name": "skip" }],
+      "featured": false
     },
     {
       "id": "documentaries",
@@ -312,7 +326,8 @@
         "endpoint": "/discover/movie",
         "params": { "with_genres": "99", "sort_by": "popularity.desc", "vote_count.gte": 60 }
       },
-      "extra": [{ "name": "skip" }]
+      "extra": [{ "name": "skip" }],
+      "featured": false
     },
     {
       "id": "anime",
@@ -324,7 +339,8 @@
         "endpoint": "/discover/tv",
         "params": { "with_genres": "16", "with_original_language": "ja", "with_keywords": "210024", "sort_by": "popularity.desc" }
       },
-      "extra": [{ "name": "skip" }]
+      "extra": [{ "name": "skip" }],
+      "featured": false
     },
     {
       "id": "korean-dramas",
@@ -336,7 +352,8 @@
         "endpoint": "/discover/tv",
         "params": { "with_original_language": "ko", "without_genres": "16|10764|10767", "sort_by": "popularity.desc", "vote_count.gte": 30 }
       },
-      "extra": [{ "name": "skip" }]
+      "extra": [{ "name": "skip" }],
+      "featured": false
     },
     {
       "id": "critically-acclaimed",
@@ -350,7 +367,8 @@
           { "endpoint": "/discover/movie", "params": { "with_original_language": "hi|te|ta|ml|kn|bn", "sort_by": "vote_average.desc", "vote_count.gte": 200 }, "weight": 1 }
         ]
       },
-      "extra": [{ "name": "skip" }]
+      "extra": [{ "name": "skip" }],
+      "featured": false
     },
     {
       "id": "hidden-gems",
@@ -365,7 +383,8 @@
           { "endpoint": "/discover/movie", "params": { "with_original_language": "hi|te|ta|ml|kn|bn|mr", "sort_by": "vote_average.desc", "vote_count.gte": 40, "vote_count.lte": 400, "primary_release_date.lte": "{{year-2}}-12-31" }, "weight": 1 }
         ]
       },
-      "extra": [{ "name": "skip" }]
+      "extra": [{ "name": "skip" }],
+      "featured": false
     },
     {
       "id": "binge-worthy",
@@ -388,7 +407,8 @@
       "order": 63,
       "group": "Curated",
       "source": { "list": "https://mdblist.com/lists/snoak/imdb-top-250-movies/json" },
-      "extra": [{ "name": "skip" }]
+      "extra": [{ "name": "skip" }],
+      "featured": false
     },
     {
       "id": "tonight",

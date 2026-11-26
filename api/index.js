@@ -28,6 +28,7 @@ const { contextMiddleware, currentOrigin } = require('../src/lib/request-context
 const { normalizeRegion, defaultRegion } = require('../src/lib/region');
 const { createArtRouter } = require('../src/art/routes');
 const { buildPack, packStats } = require('../src/collections/pack');
+const { videoEnabled } = require('../src/art/video');
 const { getTmdbClient } = require('../src/tmdb/shared');
 
 const app = express();
@@ -107,8 +108,9 @@ app.use('/art', createArtRouter());
 
 // ---- Golden Collections pack ------------------------------------------------
 // ?focus=gif links GIF focus loops instead of WebP, for TVs on Android 8 or
-// older, where Nuvio can only animate GIF. Ids are the same either way, so
-// importing one URL after the other switches the pack in place.
+// older, where Nuvio can only animate GIF. ?motion=off gives a still pack (no
+// focus loops, no hero videos) for slow devices. Ids are the same either way,
+// so importing one URL after the other switches the pack in place.
 function packHandler(regionParam) {
   return (req, res) => {
     const region = normalizeRegion(regionParam || req.params.region);
@@ -118,7 +120,8 @@ function packHandler(regionParam) {
     }
     const cfg = editionConfig(region);
     const focusFormat = req.query.focus === 'gif' ? 'gif' : 'webp';
-    const pack = buildPack({ region, origin: currentOrigin(), addonId: cfg.addon.id, focusFormat });
+    const motion = req.query.motion !== 'off';
+    const pack = buildPack({ region, origin: currentOrigin(), addonId: cfg.addon.id, focusFormat, motion });
     sendJson(res, pack, 'public, max-age=3600, s-maxage=21600, stale-while-revalidate=86400');
   };
 }
@@ -221,6 +224,7 @@ app.get('/health', async (req, res) => {
       tmdbKeyConfigured: client.hasKey(),
       tmdb,
       renderer,
+      video: { enabled: videoEnabled(), switchedOff: process.env.HERO_VIDEO === 'off' },
       publicOrigin: currentOrigin(),
       cache: client.cacheStats(),
       breaker: client.breakerStats(),

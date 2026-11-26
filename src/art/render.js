@@ -2,12 +2,20 @@
 
 /**
  * Artwork renderer: landscape tiles, Top 10 rank tiles, collection folder covers,
- * animated folder focus loops and tilted poster-wall heroes for the Nuvio TV app.
+ * animated folder focus loops, tilted poster-wall heroes and hero video frames for the
+ * Nuvio TV app (src/art/video.js encodes the frames).
  *
  * Design rules (premium streaming look, no slop):
  * - One typeface (Bebas Neue), white or the logo's own colours.
  * - Black-to-transparent shading only: no colour gradients, glows, badges or text shadows.
  * - Safe margins of about 5% of the width, one clear focal label per image.
+ * - No text in hero stills or hero video frames: Nuvio draws the folder logo on top.
+ *
+ * Motion rules:
+ * - WebP focus loops are continuous Ken Burns motion with every frame at 100 ms, because
+ *   Nuvio on iOS plays WebP frames at a fixed 100 ms. GIF loops hold and crossfade.
+ * - Hero video frame 0 is the hero still, and the motion eases out and back to it, so
+ *   Nuvio's hand-over between still and video (and back) is invisible.
  *
  * Robustness rules:
  * - Image inputs are Buffers (JPEG, PNG, WebP or SVG) or null. Anything that fails to
@@ -65,9 +73,19 @@ const BRAND_BLUR_AT_640 = 1.5;
 // Relative luminance below which a logo pixel reads as dark on dark art (about sRGB 100).
 const DARK_LOGO_L = 0.13;
 const FOCUS = {
+  // WebP focus loops are continuous motion at one uniform frame time. Nuvio on iOS
+  // ignores WebP frame durations (ImageIO frames there all play at 100 ms), and libwebp
+  // merges identical consecutive frames into one long frame, so a held still would
+  // flash by on an iPhone. Instead every frame moves a little: each picture drifts and
+  // zooms slowly (Ken Burns) and crossfades into the next, and the loop wraps seamlessly.
+  // frames: frames per picture; fadeFrames: overlap with the next picture;
+  // zoom: total zoom per picture (the source is decoded that much larger, so the
+  // closest framing is 1:1 and stays sharp).
+  motion: { frameMs: 100, pictures: 3, frames: 14, fadeFrames: 4, zoom: 0.08 },
+  // GIF, the fallback for older TVs, keeps a still hold and a short crossfade: GIF frame
+  // delays are honoured everywhere, and every changed GIF frame costs about a whole
+  // picture, so motion would be several times larger.
   holdMs: 1600,
-  fadeMs: 70,
-  fadeWeights: [0.12, 0.38, 0.68, 0.9],
   maxPictures: 4,
   // GIF has no delta coding apart from transparent pixels, so a crossfade frame costs
   // about as much as a whole picture: one half-way frame keeps 4 pictures near 450 KB.
@@ -77,11 +95,17 @@ const FOCUS = {
   // left transparent. Palette reuse stays at the default: looser values hand one
   // picture's palette to the next and visibly posterise it.
   gif: { effort: 1, dither: 0, interFrameMaxError: 6 },
-  webp: { quality: 74, effort: 4 },
+  webp: { quality: 72, effort: 4 },
 };
 // Poster card in rank tiles and poster-layout title tiles: 2:3, rounded, soft shadow.
 const CARD = { height: 470, radius: 12 };
 const HERO = { cell: [220, 330], gap: 18, canvas: [2500, 1600], angle: -8, radius: 8, maxPosters: 40 };
+// Hero video: the same wall at 1280x720, its columns gliding in turn up and down along
+// the tilt by up to `amplitude` px (at video scale) and easing back, so the video starts
+// and ends on the hero still. extraRows: posters above and below the visible wall for
+// the columns to travel into (the still uses the same layout, so its posters sit
+// exactly where the video's start).
+const HERO_VIDEO = { size: [1280, 720], fps: 30, seconds: 6, amplitude: 130, extraRows: 1 };
 
 // ---- Small helpers ----------------------------------------------------------------------
 
@@ -1130,14 +1154,110 @@ function encodeFrames(frames, delays, W, H, format) {
 }
 
 /**
- * Animated focus loop for a folder (GIF or WebP, loops forever), at the same aspect
+ * One Ken Burns view of a picture: the window of `src` (SW x SH RGB) at zoom `z`
+ * (1 shows the whole source, SW / W shows it at 1:1) whose position is `fx`, `fy`
+ * in [0, 1] of the free travel, resampled bilinearly to W x H.
+ */
+function kenBurnsView(src, SW, SH, W, H, z, fx, fy, out) {
+  const ww = SW / z;
+  const wh = SH / z;
+  const x0 = (SW - ww) * clamp(fx, 0, 1);
+  const y0 = (SH - wh) * clamp(fy, 0, 1);
+  const sx = ww / W;
+  const sy = wh / H;
+  const xi = new Int32Array(W);
+  const xw = new Uint16Array(W);
+  for (let x = 0; x < W; x++) {
+    const f = clamp(x0 + (x + 0.5) * sx - 0.5, 0, SW - 1.001);
+    xi[x] = Math.floor(f);
+    xw[x] = Math.round((f - xi[x]) * 256);
+  }
+  for (let y = 0; y < H; y++) {
+    const f = clamp(y0 + (y + 0.5) * sy - 0.5, 0, SH - 1.001);
+    const iy = Math.floor(f);
+    const wy = Math.round((f - iy) * 256);
+    const r0 = iy * SW * 3;
+    const r1 = r0 + SW * 3;
+    let q = y * W * 3;
+    for (let x = 0; x < W; x++) {
+      const a = r0 + xi[x] * 3;
+      const b = r1 + xi[x] * 3;
+      const wx = xw[x];
+      for (let c = 0; c < 3; c++, q++) {
+        const top = src[a + c] * (256 - wx) + src[a + 3 + c] * wx;
+        const bot = src[b + c] * (256 - wx) + src[b + 3 + c] * wx;
+        out[q] = (top * (256 - wy) + bot * wy + 32768) >> 16;
+      }
+    }
+  }
+  return out;
+}
+
+// Camera paths, one per picture in turn: zoom from, zoom to (as a fraction of the
+// picture's zoom range), and the window position from and to.
+const KEN_BURNS = [
+  { z: [0, 1], x: [0.2, 0.8], y: [0.5, 0.5] },
+  { z: [1, 0], x: [0.8, 0.3], y: [0.3, 0.7] },
+  { z: [0, 1], x: [0.5, 0.5], y: [0.75, 0.25] },
+  { z: [1, 0], x: [0.3, 0.7], y: [0.6, 0.4] },
+];
+
+/**
+ * Frames of the motion loop (WebP): `stills` are sources decoded at SW x SH.
+ * Picture j owns `frames` frames and stays visible for `fadeFrames` more while the
+ * next picture fades in over it, so frame 0 is already a blend of the last picture
+ * and the first: the loop has no seam. One picture zooms in and out again instead.
+ */
+function motionFrames(stills, SW, SH, W, H, pre) {
+  const { frames: per, fadeFrames, zoom } = FOCUS.motion;
+  const P = stills.length;
+  const span = per + fadeFrames;
+  const zMax = 1 + zoom;
+  const a = Buffer.allocUnsafe(W * H * 3);
+  const b = Buffer.allocUnsafe(W * H * 3);
+  const view = (j, t, out) => {
+    const u = t / (span - 1);
+    if (P === 1) {
+      const z = 1 + (zMax - 1) * (1 - Math.cos(2 * Math.PI * (t / per))) * 0.5;
+      return kenBurnsView(stills[0], SW, SH, W, H, z, 0.5, 0.5, out);
+    }
+    const path = KEN_BURNS[j % KEN_BURNS.length];
+    const lerp = ([from, to]) => from + (to - from) * u;
+    return kenBurnsView(stills[j], SW, SH, W, H, 1 + (zMax - 1) * lerp(path.z), lerp(path.x), lerp(path.y), out);
+  };
+  const out = [];
+  const total = P === 1 ? per * 2 : P * per;
+  for (let f = 0; f < total; f++) {
+    if (P === 1) {
+      out.push(applyOverlay(view(0, f / 2, a), pre));
+      continue;
+    }
+    const j = Math.floor(f / per);
+    const k = f % per;
+    view(j, k, a);
+    if (k < fadeFrames) {
+      // The previous picture, in its overlap frames, under the incoming one.
+      view((j + P - 1) % P, per + k, b);
+      mixInto(a, b, a, smoothstep(0, 1, (k + 1) / (fadeFrames + 1)));
+    }
+    out.push(applyOverlay(a, pre));
+  }
+  return out;
+}
+
+/**
+ * Animated focus loop for a folder (WebP or GIF, loops forever), at the same aspect
  * as the folder's cover so Nuvio can stretch it over the tile without distortion:
- * landscape 416x234, poster 243x360, square 300x300. Up to 4 backdrops, each held
- * 1600 ms, under the same overlay as the cover. WebP crossfades with 4 eased 70 ms
- * frames; GIF, the fallback for older TVs, with one 100 ms half-way frame, since every
- * GIF frame costs about a whole picture. The overlay is composed once, so the label
- * stays perfectly still while the pictures change. The last picture fades back into
- * the first. With one usable backdrop (or none) a single static frame is returned.
+ * landscape 416x234, poster 243x360, square 300x300, under the same overlay as the
+ * cover, composed on every frame so the label stays perfectly still.
+ *
+ * WebP: up to 3 backdrops in continuous Ken Burns motion with eased crossfades, every
+ * frame 100 ms (about 4 s per loop), so it plays the same on Android and on iOS. One
+ * backdrop breathes (a slow zoom in and out).
+ * GIF, the fallback for older TVs: up to 4 backdrops, each held 1600 ms, with one
+ * 100 ms half-way frame between them, since every GIF frame costs about a whole picture.
+ * The last picture fades back into the first. Without backdrops a single static frame
+ * is returned (one for GIF too).
  *
  * @param {{backdrops?: Array<Buffer|null>, logo?: Buffer|null, wordmark?: string,
  *   format?: 'gif'|'webp', shape?: 'landscape'|'poster'|'square', brand?: boolean}} [input]
@@ -1152,13 +1272,22 @@ async function renderFolderFocus({ backdrops, logo, wordmark, format = 'gif', sh
       const prep = await prepareLogo(logo);
       const brand = Boolean(prep) || Boolean(brandFolder);
       const blur = brand ? (BRAND_BLUR_AT_640 * W) / SIZES.coverLandscape[0] : 0;
-      const list = Array.isArray(backdrops) ? backdrops : backdrops ? [backdrops] : [];
+      const list = (Array.isArray(backdrops) ? backdrops : backdrops ? [backdrops] : []).filter(Boolean);
+      const want = fmt === 'webp' ? FOCUS.motion.pictures : FOCUS.maxPictures;
+      // Motion needs room to move: sources are decoded larger by the zoom range.
+      const scale = fmt === 'webp' ? 1 + FOCUS.motion.zoom : 1;
+      const SW = Math.ceil(W * scale);
+      const SH = Math.ceil(H * scale);
       const stills = [];
-      for (let i = 0; i < list.length && stills.length < FOCUS.maxPictures; i += FOCUS.maxPictures) {
-        const batch = await Promise.all(list.slice(i, i + FOCUS.maxPictures).map((b) => decodeCover(b, W, H, { blur })));
-        for (const s of batch) if (s && stills.length < FOCUS.maxPictures) stills.push(s);
+      for (let i = 0; i < list.length && stills.length < want; i += want) {
+        const batch = await Promise.all(list.slice(i, i + want).map((b) => decodeCover(b, SW, SH, { blur: blur * scale })));
+        for (const s of batch) if (s && stills.length < want) stills.push(s);
       }
       const pre = await coverOverlay(key, W, H, prep, wordmark, brand);
+      if (fmt === 'webp' && stills.length) {
+        const frames = motionFrames(stills, SW, SH, W, H, pre);
+        return encodeFrames(frames, frames.map(() => FOCUS.motion.frameMs), W, H, fmt);
+      }
       if (stills.length < 2) {
         const still = applyOverlay(stills[0] || coverCanvas(W, H, brand), pre);
         return encodeFrames([still], null, W, H, fmt);
@@ -1166,14 +1295,13 @@ async function renderFolderFocus({ backdrops, logo, wordmark, format = 'gif', sh
       const frames = [];
       const delays = [];
       const mix = Buffer.allocUnsafe(stills[0].length);
-      const fade = fmt === 'gif' ? FOCUS.gifFade : { weights: FOCUS.fadeWeights, ms: FOCUS.fadeMs };
       stills.forEach((a, i) => {
         const b = stills[(i + 1) % stills.length];
         frames.push(applyOverlay(a, pre));
         delays.push(FOCUS.holdMs);
-        for (const t of fade.weights) {
+        for (const t of FOCUS.gifFade.weights) {
           frames.push(applyOverlay(mixInto(mix, a, b, t), pre));
-          delays.push(fade.ms);
+          delays.push(FOCUS.gifFade.ms);
         }
       });
       return encodeFrames(frames, delays, W, H, fmt);
@@ -1206,63 +1334,235 @@ function wallOrder(rows, cols, n) {
 }
 
 /**
+ * Geometry of the hero poster wall at a scale of the 1920x1080 hero. Column and row
+ * counts always come from the full-size wall, so the still and the 1280x720 video
+ * place every poster in the same spot.
+ */
+function heroGeometry(scale = 1) {
+  const [cw0, ch0] = HERO.cell;
+  const pitch0X = cw0 + HERO.gap;
+  const pitch0Y = ch0 + HERO.gap;
+  const cols = Math.ceil((HERO.canvas[0] + HERO.gap) / pitch0X) + 1;
+  const rows = Math.ceil((HERO.canvas[1] + HERO.gap) / pitch0Y) + 1;
+  const r = (v) => Math.round(v * scale);
+  const cell = [r(cw0), r(ch0)];
+  const gap = r(HERO.gap);
+  const canvas = [r(HERO.canvas[0]), r(HERO.canvas[1])];
+  const pitchX = cell[0] + gap;
+  const pitchY = cell[1] + gap;
+  const extra = HERO_VIDEO.extraRows;
+  return {
+    cell, gap, canvas, cols, rows, pitchX, pitchY, extra,
+    radius: Math.max(2, r(HERO.radius)),
+    // The wall strip holds every column in full, with `extra` rows above and below.
+    strip: [cols * pitchX, (rows + 2 * extra) * pitchY],
+    // Where the visible canvas sits in the strip (the wall is centred on the canvas).
+    view: [
+      Math.round((cols * pitchX - gap - canvas[0]) / 2),
+      extra * pitchY + Math.round((rows * pitchY - gap - canvas[1]) / 2),
+    ],
+  };
+}
+
+/** Raw RGB strip of the poster wall for a geometry: columns side by side, unrotated. */
+async function heroStrip(posters, g) {
+  const [cw, ch] = g.cell;
+  const list = (Array.isArray(posters) ? posters : posters ? [posters] : []).slice(0, HERO.maxPosters);
+  const cells = (await Promise.all(list.map((p) => decodeCover(p, cw, ch)))).filter(Boolean);
+  if (!cells.length) return null;
+  const [SW, SH] = g.strip;
+  const strip = Buffer.allocUnsafe(SW * SH * 3);
+  for (let p = 0; p < SW * SH; p++) {
+    strip[p * 3] = CANVAS_BASE[0];
+    strip[p * 3 + 1] = CANVAS_BASE[1];
+    strip[p * 3 + 2] = CANVAS_BASE[2];
+  }
+  const corner = roundedMask(cw, ch, g.radius);
+  const rounded = cells.map((c) => rgbToRgba(c, corner));
+  const rows = g.rows + 2 * g.extra;
+  const order = wallOrder(rows, g.cols, rounded.length);
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < g.cols; c++) {
+      compositeOver(strip, SW, SH, rounded[order[r * g.cols + c]], cw, ch, c * g.pitchX, r * g.pitchY);
+    }
+  }
+  return strip;
+}
+
+/** The hero's black shading at W x H: a strong left gradient and a bottom gradient. */
+function heroShadeField(W, H) {
+  const field = newField(W, H, 0.45);
+  stackColumns(field, (x) => 0.92 * (1 - smoothstep(0, W * 0.55, x + 0.5)));
+  stackRows(field, (y) => 0.8 * smoothstep(H * 0.45, H, y + 0.5));
+  return field;
+}
+
+/** Crop of a rotated canvas that fills W x H, centred. */
+function rotatedCrop(CW, CH, W, H) {
+  const rad = (Math.abs(HERO.angle) * Math.PI) / 180;
+  const rw = Math.floor(CW * Math.cos(rad) + CH * Math.sin(rad));
+  const rh = Math.floor(CW * Math.sin(rad) + CH * Math.cos(rad));
+  return { left: Math.floor((rw - W) / 2), top: Math.floor((rh - H) / 2), width: W, height: H };
+}
+
+/**
  * Folder hero backdrop (1920x1080 JPEG): a wall of posters tilted by -8 degrees, darkened,
  * with a strong left gradient and a bottom gradient, since Nuvio draws its own text on
- * the left. No text is baked in.
+ * the left. No text is baked in. The wall is the first frame of the hero video.
  *
  * @param {{posters?: Array<Buffer|null>}} [input]
  * @returns {Promise<Buffer>} JPEG
  */
 async function renderFolderHero({ posters } = {}) {
   const [W, H] = SIZES.hero;
-  const shade = (rgb) => {
-    const field = newField(W, H, 0.45);
-    stackColumns(field, (x) => 0.92 * (1 - smoothstep(0, W * 0.55, x + 0.5)));
-    stackRows(field, (y) => 0.8 * smoothstep(H * 0.45, H, y + 0.5));
-    return applyOverlay(rgb, precompose(field, null));
-  };
+  const shade = (rgb) => applyOverlay(rgb, precompose(heroShadeField(W, H), null));
   return guard(
     async () => {
-      const sharp = getSharp();
-      const [cw, ch] = HERO.cell;
-      const list = (Array.isArray(posters) ? posters : posters ? [posters] : []).slice(0, HERO.maxPosters);
-      const cells = (await Promise.all(list.map((p) => decodeCover(p, cw, ch)))).filter(Boolean);
-      if (!cells.length) return encodeJpeg(shade(darkCanvas(W, H)), W, H, 80);
-
-      const [CW, CH] = HERO.canvas;
-      const pitchX = cw + HERO.gap;
-      const pitchY = ch + HERO.gap;
-      const cols = Math.ceil((CW + HERO.gap) / pitchX) + 1;
-      const rows = Math.ceil((CH + HERO.gap) / pitchY) + 1;
-      const offX = Math.round((CW - (cols * pitchX - HERO.gap)) / 2);
-      const offY = Math.round((CH - (rows * pitchY - HERO.gap)) / 2);
-      const wall = Buffer.allocUnsafe(CW * CH * 3);
-      for (let p = 0; p < CW * CH; p++) {
-        wall[p * 3] = CANVAS_BASE[0];
-        wall[p * 3 + 1] = CANVAS_BASE[1];
-        wall[p * 3 + 2] = CANVAS_BASE[2];
-      }
-      const corner = roundedMask(cw, ch, HERO.radius);
-      const rounded = cells.map((c) => rgbToRgba(c, corner));
-      const order = wallOrder(rows, cols, rounded.length);
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          compositeOver(wall, CW, CH, rounded[order[r * cols + c]], cw, ch, offX + c * pitchX, offY + r * pitchY);
-        }
-      }
+      const g = heroGeometry(1);
+      const strip = await heroStrip(posters, g);
+      if (!strip) return encodeJpeg(shade(darkCanvas(W, H)), W, H, 80);
+      const [CW, CH] = g.canvas;
       const bg = { r: CANVAS_BASE[0], g: CANVAS_BASE[1], b: CANVAS_BASE[2] };
-      const rad = (Math.abs(HERO.angle) * Math.PI) / 180;
-      const rw = Math.floor(CW * Math.cos(rad) + CH * Math.sin(rad));
-      const rh = Math.floor(CW * Math.sin(rad) + CH * Math.cos(rad));
-      const rgb = await sharp(wall, { raw: { width: CW, height: CH, channels: 3 } })
+      const rgb = await getSharp()(strip, { raw: { width: g.strip[0], height: g.strip[1], channels: 3 } })
+        .extract({ left: g.view[0], top: g.view[1], width: CW, height: CH })
         .rotate(HERO.angle, { background: bg })
-        .extract({ left: Math.floor((rw - W) / 2), top: Math.floor((rh - H) / 2), width: W, height: H })
+        .extract(rotatedCrop(CW, CH, W, H))
         .raw()
         .toBuffer();
       return encodeJpeg(shade(rgb), W, H, 80);
     },
     () => encodeJpeg(shade(darkCanvas(W, H)), W, H, 80),
   );
+}
+
+/**
+ * The hero video as raw RGB frames, drawn so the video matches the still.
+ *
+ * Rotating every frame is what makes such a video expensive, so it is never done:
+ * each poster column of the wall is cut out as a band (with half the gap on each side)
+ * and rotated once. A column moves along its own tilted axis, so the boundaries
+ * between bands stay put on screen, and every output row is a run of plain copies,
+ * one per band, from the rotated bands at that frame's offsets. Offsets are whole
+ * pixels, so posters stay crisp and never shimmer.
+ *
+ * Returns null when no poster could be decoded (no video is worth making then).
+ * @param {{posters?: Array<Buffer|null>}} [input]
+ * @returns {Promise<null|{width: number, height: number, fps: number, count: number,
+ *   frame: (n: number) => Buffer, shade: Buffer}>} frame(n) reuses one buffer; shade
+ *   is the hero's shading as a black RGBA PNG, laid over every frame by the encoder
+ */
+async function heroVideoFrames({ posters } = {}) {
+  const sharp = getSharp();
+  const [W, H] = HERO_VIDEO.size;
+  const { fps, seconds, amplitude } = HERO_VIDEO;
+  const g = heroGeometry(W / SIZES.hero[0]);
+  const strip = await heroStrip(posters, g);
+  if (!strip) return null;
+  const [SW, SH] = g.strip;
+  const [CW, CH] = g.canvas;
+  const phi = (HERO.angle * Math.PI) / 180;
+  const cos = Math.cos(phi);
+  const sin = Math.sin(phi);
+  const bg = { r: CANVAS_BASE[0], g: CANVAS_BASE[1], b: CANVAS_BASE[2] };
+  const half = g.gap / 2;
+  const margin = 4;
+
+  // Bands: column c spans strip x in [c * pitchX - gap / 2, c * pitchX + cell + gap / 2).
+  const bands = await Promise.all(
+    Array.from({ length: g.cols }, async (_, c) => {
+      const x0 = Math.floor(c * g.pitchX - half) - margin;
+      const bw = g.pitchX + 2 * margin + 1;
+      const band = Buffer.allocUnsafe(bw * SH * 3);
+      for (let p = 0; p < bw * SH; p++) {
+        band[p * 3] = CANVAS_BASE[0];
+        band[p * 3 + 1] = CANVAS_BASE[1];
+        band[p * 3 + 2] = CANVAS_BASE[2];
+      }
+      const from = Math.max(0, x0);
+      const to = Math.min(SW, x0 + bw);
+      if (to > from) {
+        for (let y = 0; y < SH; y++) strip.copy(band, (y * bw + (from - x0)) * 3, (y * SW + from) * 3, (y * SW + to) * 3);
+      }
+      const { data, info } = await sharp(band, { raw: { width: bw, height: SH, channels: 3 } })
+        .rotate(HERO.angle, { background: bg })
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+      // The band's centre, in canvas coordinates of the still (before any motion).
+      return { data, w: info.width, h: info.height, cx: x0 + bw / 2 - g.view[0], cy: SH / 2 - g.view[1], dir: c % 2 ? 1 : -1 };
+    })
+  );
+
+  // Screen position of a canvas point: rotate about the canvas centre, centre on screen.
+  const toScreen = (x, y) => {
+    const dx = x - CW / 2;
+    const dy = y - CH / 2;
+    return [W / 2 + cos * dx - sin * dy, H / 2 + sin * dx + cos * dy];
+  };
+  // Band boundaries per row: the screen x where the line canvas-x = u crosses row Y.
+  const bounds = new Int32Array(H * (g.cols + 1));
+  for (let Y = 0; Y < H; Y++) {
+    for (let c = 0; c <= g.cols; c++) {
+      const u = c * g.pitchX - half - g.view[0];
+      const X = W / 2 + (u - CW / 2 - sin * (Y - H / 2)) / cos;
+      bounds[Y * (g.cols + 1) + c] = clamp(Math.ceil(X - 0.5), 0, W);
+    }
+  }
+
+  const count = fps * seconds;
+  const out = Buffer.allocUnsafe(W * H * 3);
+  const frame = (n) => {
+    // Eased out and back: still at the start, fastest half way, still again at the end.
+    const o = (amplitude * (1 - Math.cos((2 * Math.PI * n) / count))) / 2;
+    const offs = bands.map((b) => {
+      // The band's content moves along its column by -dir * o canvas px.
+      const [sx, sy] = toScreen(b.cx, b.cy - b.dir * o);
+      return [Math.round(sx - b.w / 2), Math.round(sy - b.h / 2)];
+    });
+    for (let Y = 0; Y < H; Y++) {
+      const row = Y * W * 3;
+      let X = 0;
+      for (let c = 0; c < g.cols; c++) {
+        const x1 = bounds[Y * (g.cols + 1) + c + 1];
+        if (x1 <= X) continue;
+        const b = bands[c];
+        const [ox, oy] = offs[c];
+        const by = Y - oy;
+        const bx0 = X - ox;
+        const bx1 = x1 - ox;
+        if (by >= 0 && by < b.h && bx0 >= 0 && bx1 <= b.w) {
+          b.data.copy(out, row + X * 3, (by * b.w + bx0) * 3, (by * b.w + bx1) * 3);
+        } else {
+          for (let x = X; x < x1; x++) {
+            const bx = x - ox;
+            const q = row + x * 3;
+            if (by >= 0 && by < b.h && bx >= 0 && bx < b.w) {
+              const s2 = (by * b.w + bx) * 3;
+              out[q] = b.data[s2];
+              out[q + 1] = b.data[s2 + 1];
+              out[q + 2] = b.data[s2 + 2];
+            } else {
+              out[q] = CANVAS_BASE[0];
+              out[q + 1] = CANVAS_BASE[1];
+              out[q + 2] = CANVAS_BASE[2];
+            }
+          }
+        }
+        X = x1;
+      }
+      for (let x = X; x < W; x++) {
+        out[row + x * 3] = CANVAS_BASE[0];
+        out[row + x * 3 + 1] = CANVAS_BASE[1];
+        out[row + x * 3 + 2] = CANVAS_BASE[2];
+      }
+    }
+    return out;
+  };
+
+  const field = heroShadeField(W, H);
+  const rgba = Buffer.alloc(W * H * 4);
+  for (let p = 0; p < W * H; p++) rgba[p * 4 + 3] = Math.round(clamp(field.a[p], 0, 1) * 255);
+  const shade = await sharp(rgba, { raw: { width: W, height: H, channels: 4 } }).png({ compressionLevel: 1 }).toBuffer();
+  return { width: W, height: H, fps, count, frame, shade };
 }
 
 module.exports = {
@@ -1275,4 +1575,6 @@ module.exports = {
   renderFolderCover,
   renderFolderFocus,
   renderFolderHero,
+  heroVideoFrames,
+  HERO_VIDEO,
 };

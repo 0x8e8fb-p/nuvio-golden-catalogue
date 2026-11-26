@@ -50,7 +50,8 @@ test('default manifest is served and CORS-enabled', async () => {
 test('region edition is namespaced and region-specific', async () => {
   const m = await (await fetch(`${base}/r/IN/manifest.json`)).json();
   assert.equal(m.id, 'com.nuvio.golden.catalogue.in');
-  assert.ok(m.catalogs.some((c) => c.id === 'on-jiohotstar'));
+  assert.ok(m.catalogs.some((c) => c.id === 'indian-blockbusters'), 'India home rows');
+  assert.ok(m.catalogs.some((c) => c.id === 'gc-series-orig'), 'facet rows behind the folders');
   const us = await (await fetch(`${base}/r/US/manifest.json`)).json();
   assert.equal(us.id, 'com.nuvio.golden.catalogue', 'default region keeps the plain id');
 });
@@ -101,10 +102,10 @@ test('collections pack points every folder at the region edition', async () => {
   const folder = pack[0].folders[0];
   assert.ok(folder.coverImageUrl.startsWith(`${base}/art/folder/IN/`));
   assert.ok(folder.titleLogoUrl.startsWith(`${base}/art/folder/IN/`), 'generated title logo');
+  assert.ok(folder.heroVideoUrl.startsWith(`${base}/art/folder/IN/`), 'hero video');
   for (const s of folder.sources) {
     assert.equal(s.addonId, 'com.nuvio.golden.catalogue.in');
-    assert.match(s.catalogId, /^gc-(movie|series),[a-z0-9-]+$/);
-    assert.equal(s.genre, undefined, 'no genre: the tab label stays "Movies" or "Shows"');
+    assert.match(s.catalogId, /^gc-(movie|series)(-[a-z]+)?,[a-z0-9-]+$/);
   }
 });
 
@@ -162,7 +163,7 @@ test('?focus=gif links GIF focus loops, with the same ids', async () => {
   const gif = await (await fetch(`${base}/r/IN/collections.json?focus=gif`)).json();
   const ids = (p) => p.map((c) => [c.id, c.folders.map((f) => f.id)]);
   assert.deepEqual(ids(gif), ids(webp));
-  for (const f of gif.flatMap((c) => c.folders)) assert.match(f.focusGifUrl, /\/focus\.gif\?v=1&shape=(landscape|poster|square)$/);
+  for (const f of gif.flatMap((c) => c.folders)) assert.match(f.focusGifUrl, /\/focus\.gif\?v=4&shape=(landscape|poster|square)$/);
   const html = await (await fetch(`${base}/`)).text();
   assert.ok(html.includes(`${base}/r/US/collections.json?focus=gif`), 'landing page offers the GIF pack');
 });
