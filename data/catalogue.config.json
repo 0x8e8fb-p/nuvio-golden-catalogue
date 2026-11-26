@@ -1,7 +1,7 @@
 {
   "addon": {
     "id": "com.nuvio.golden.catalogue",
-    "version": "4.0.0",
+    "version": "5.0.0",
     "name": "Golden Catalogue",
     "description": "A complete, region-aware home for Nuvio and Stremio: Top 10 rows, cinematic title tiles, Indian and worldwide cinema blended in every row, and the Golden Collections pack. Metadata only; your stream addons handle playback.",
     "logo": "https://image.tmdb.org/t/p/w500/wwemzKWzjKYJFfCeiB57q3r4Bcm.png",

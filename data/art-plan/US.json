@@ -1,0 +1,1864 @@
+{
+ "region": "US",
+ "generated": "2026-11-26",
+ "tiles": {
+  "dune": {
+   "focus": [
+    "/xS0g3s4blsiPmtpjjb7chFjI1ip.jpg",
+    "/eZ239CUp1d6OryZEBPnO2n87gMG.jpg",
+    "/qVgZu5BTx6pu4owCvVOm4zjTfOi.jpg",
+    "/zRKQW58MBEY078AxkHxEJzUskCl.jpg"
+   ],
+   "hero": [
+    "/jYEW5xZkZk2WTrdbMGAPFuBqbDc.jpg",
+    "/h3HsfV8Kn9Sz2QWUYYdP5ya23hx.jpg",
+    "/lzWHmYdfeFiMIY4JaMmtR7GEli3.jpg"
+   ],
+   "posters": []
+  },
+  "avatar": {
+   "focus": [
+    "/vL5LR6WdxWPjLPFRLe133jXWsh5.jpg",
+    "/8rpDcsfLJypbO6vREc0547VKqEv.jpg",
+    "/u8DU5fkLoM5tTRukzPC31oGPxaQ.jpg",
+    "/7JNzw1tSZZEgsBw6lu0VfO2X2Ef.jpg"
+   ],
+   "hero": [
+    "/8I37NtDffNV7AZlDa7uDvvqhovU.jpg",
+    "/Yc9q6QuWrMp9nuDm5R8ExNqbEq.jpg",
+    "/AmHOQ7rpHwiaUMRjKXztnauSJb7.jpg"
+   ],
+   "posters": []
+  },
+  "back-to-the-future": {
+   "focus": [
+    "/5bzPWQ2dFUl2aZKkp7ILJVVkRed.jpg",
+    "/w6tPctxWAsHoQXeKxxNOT6lYKpx.jpg",
+    "/AtF7TESJEMmImBRUj9Z7HmW2ZH0.jpg",
+    "/2H2YYbn8wDzYXtak83Md6PAwMdp.jpg"
+   ],
+   "hero": [
+    "/pZCLGHynFPOv8dve6u9waxknLth.jpg",
+    "/qskzmLTbarKnXDbo2HRj4NJ3vcW.jpg",
+    "/hxSB02ksqnkXY4hPGAXqgO2fL01.jpg"
+   ],
+   "posters": []
+  },
+  "how-to-train-your-dragon": {
+   "focus": [
+    "/59vDC1BuEQvti24OMr0ZvtAK6R1.jpg",
+    "/8AAuJtCzaibYkbE0QVHc8EBsELB.jpg",
+    "/h3KN24PrOheHVYs9ypuOIdFBEpX.jpg",
+    "/kxklJL1v8MYEU5xdU6W5VvmBwVz.jpg"
+   ],
+   "hero": [
+    "/aH9KWmXFMamXkHMgLjnQmSYjScL.jpg",
+    "/m7r1aqoLym8dGpcluAe6LM2ut19.jpg",
+    "/25pgiBaB0wjtrqLbckOKFYIwnz1.jpg"
+   ],
+   "posters": []
+  },
+  "the-dark-knight": {
+   "focus": [
+    "/9IIBboV7MCT0bTxzXHmWK1Hq558.jpg",
+    "/cfT29Im5VDvjE0RpyKOSdCKZal7.jpg",
+    "/c3OHQncTAnKFhdOTX7D3LTW6son.jpg",
+    "/ew5FcYiRhTYNJAkxoVPMNlCOdVn.jpg"
+   ],
+   "hero": [
+    "/lh5lbisD4oDbEKgUxoRaZU8HVrk.jpg",
+    "/zYDjcLWhQWm0l3Cjdsc5jbepzHR.jpg",
+    "/y9AuabF1SXnn3xZ0tAJLLhv33Uj.jpg"
+   ],
+   "posters": []
+  },
+  "the-lord-of-the-rings": {
+   "focus": [
+    "/oiwc338EoBgS4sEI2ixAny4KQKg.jpg",
+    "/6G73mNyooWAEQTpckPSnFxFoNmc.jpg",
+    "/ctiw6FZK4N36LmkjSklWEbuvlq9.jpg",
+    "/z51Wzj94hvAIsWfknifKTqKJRwp.jpg"
+   ],
+   "hero": [
+    "/zzIdXP769uYxQq6rK9plfeoVdTo.jpg",
+    "/ua5EHfleb44L5hfHPs2BPqRAove.jpg",
+    "/a0lfia8tk8ifkrve0Tn8wkISUvs.jpg"
+   ],
+   "posters": []
+  },
+  "alien": {
+   "focus": [
+    "/gZbcm1ADEXuxs1TsBVOBdk4heGI.jpg",
+    "/4kix6fAblJIH6eMs0Ku2loyZJXK.jpg",
+    "/mqmQWkg8djY2G7v2xTmW9csE3K.jpg",
+    "/dNuNqjLVfapuv0bZG55R06TQD4Z.jpg"
+   ],
+   "hero": [
+    "/AmR3JG1VQVxU8TfAvljUhfSFUOx.jpg",
+    "/cEobq5QrnOJjO6giDs8q4RxmMKh.jpg",
+    "/3BNbh8ODH68JRLEc4YveMHuTcH1.jpg"
+   ],
+   "posters": []
+  },
+  "john-wick": {
+   "focus": [
+    "/ff2ti5DkA9UYLzyqhQfI2kZqEuh.jpg",
+    "/Aa9Lx6gotP0szl9tlt5SPCN08oF.jpg",
+    "/vVpEOvdxVBP2aV166j5Xlvb5Cdc.jpg",
+    "/7I6VUdPj6tQECNHdviJkUHD2u89.jpg"
+   ],
+   "hero": [
+    "/7dzngS8pLkGJpyeskCFcjPO9qLF.jpg",
+    "/eD7FnB7LLrBV5ewjdGLYTAoV9Mv.jpg",
+    "/iheet74M0ktRbQiZY2abyciSBwv.jpg"
+   ],
+   "posters": []
+  },
+  "kung-fu-panda": {
+   "focus": [
+    "/qdthf9WrRDSaIkGVQGhhJ9pz1hn.jpg",
+    "/iBUIS2duNa9aDfLgRr8thsUPRs0.jpg",
+    "/s3FiHTdpQVpqIqdBxLLiy40wGut.jpg",
+    "/3ffPx9jqg0yj9y1KWeagT7D20CB.jpg"
+   ],
+   "hero": [
+    "/d1RHScaZc7I8j0lDke1c4AxI435.jpg",
+    "/uOoxc6Mgsw1WtoEXPzQypbNkTt2.jpg",
+    "/vxDDCY5PEPNhFXRtXaB444ISMgw.jpg"
+   ],
+   "posters": []
+  },
+  "planet-of-the-apes": {
+   "focus": [
+    "/6cCF0KMUO2QmrVsQFujkQduREXX.jpg",
+    "/3SozaNPOYUadcmTPgndDibMyDNC.jpg",
+    "/ulMscezy9YX0bhknvJbZoUgQxO5.jpg",
+    "/fqv8v6AycXKsivp1T5yKtLbGXce.jpg"
+   ],
+   "hero": [
+    "/dENLz9Np9EV5Ro8UIBhbKC8BmSS.jpg",
+    "/sQLOAunRiDIy2gK7FFi8FzJ6t4H.jpg",
+    "/fSX71MsfKTOyvtE0bEyCrSbdCea.jpg"
+   ],
+   "posters": []
+  },
+  "shrek": {
+   "focus": [
+    "/2Biv1mSzaaxWOqvcnDZn4GcYEAb.jpg",
+    "/b33E34IywGC4NWYY3G1ck7uehNF.jpg",
+    "/wvXxKpFGXvQJRB0nvvfURhRD3C0.jpg",
+    "/uzzTystB8lL0mRDII5Sfs5HxgkI.jpg"
+   ],
+   "hero": [
+    "/sRvXNDItGlWCqtO3j6wks52FmbD.jpg",
+    "/bNTHSd3UqqLzIVwbDOGPnx3ScfF.jpg",
+    "/40Wtp7kMG6mZ4d5T1jfrd8qrvD4.jpg"
+   ],
+   "posters": []
+  },
+  "spider-man": {
+   "focus": [
+    "/fn4n6uOYcB6Uh89nbNPoU2w80RV.jpg",
+    "/vamhMTvh9m9zFHDoR0v1nRtf6T4.jpg",
+    "/iQFcwSGbZXMkeyKrxbPnwnRo5fl.jpg",
+    "/r08LxMJCbf1SiJIWeyH9aJmdqwC.jpg"
+   ],
+   "hero": [
+    "/tPpYGm2mVecue7Bk3gNVoSPA5qn.jpg",
+    "/lAsr1ytUq0ATWdCbcjf59pupPFy.jpg",
+    "/vc8bCGjdVp0UbMNLzHnHSLRbBWQ.jpg"
+   ],
+   "posters": []
+  },
+  "the-avengers": {
+   "focus": [
+    "/9BBTo63ANSmhC4e6r62OJFuK2GL.jpg",
+    "/kIBK5SKwgqIIuRKhhWrJn3XkbPq.jpg",
+    "/mDfJG3LC3Dqb67AZ52x3Z0jU0uB.jpg",
+    "/7RyHsO4yDXtBv1zUU3mTpHeQ0d5.jpg"
+   ],
+   "hero": [
+    "/nNmJRkg8wWnRmzQDe2FwKbPIsJV.jpg",
+    "/pGFQCp12a8andfPlpnmXz44IIvY.jpg",
+    "/gHLs7Fy3DzLmLsD4lmfqL55KGcl.jpg"
+   ],
+   "posters": []
+  },
+  "the-hunger-games": {
+   "focus": [
+    "/eVYChqJavS1DCXFeJE2lzVUMLKp.jpg",
+    "/eHaazLxM5LRMh0ySkVy7SK6wUWt.jpg",
+    "/lV1P1Q5gLDXVG1ZYCxZHStkcQC3.jpg",
+    "/qVgLMRVNB5bHU0inmRa0ueShacN.jpg"
+   ],
+   "hero": [
+    "/3sndNmvdF0R8AeyCmVoNv8LKtNy.jpg",
+    "/yVBQ65YBYZ9UhzJ4NGdRgeXtyTL.jpg",
+    "/u2IbvL15KogikqmMSLhEVGdExJC.jpg"
+   ],
+   "posters": []
+  },
+  "the-matrix": {
+   "focus": [
+    "/tlm8UkiQsitc8rSuIAscQDCnP8d.jpg",
+    "/ihOJcrorpDQtHTzIOrobbOhpJsj.jpg",
+    "/533xAMhhVyjTy8hwMUFEt5TuDfR.jpg",
+    "/eNI7PtK6DEYgZmHWP9gQNuff8pv.jpg"
+   ],
+   "hero": [
+    "/lrtSb1skJayPydZk0OSMAKjBOVe.jpg",
+    "/oMsxZEvz9a708d49b6UdZK1KAo5.jpg",
+    "/ncEsesgOJDNrTUED89hYbA117wo.jpg"
+   ],
+   "posters": []
+  },
+  "indiana-jones": {
+   "focus": [
+    "/zPACwR32amTNvzId9qyapCWXYDJ.jpg",
+    "/f133nWlU6yUkZqqwcCXCbTEJWHr.jpg",
+    "/7KGdTzKux4fp5sW7hUM33NWqBU1.jpg",
+    "/p96949hcwUG2BwE6MgKmw0uYNCx.jpg"
+   ],
+   "hero": [
+    "/57JocxmicOoAMhkUSmdKBlpZWMT.jpg",
+    "/oxK0OlJ5brTZMLQu5AD1oLDgwt3.jpg",
+    "/c7Mjuip0jfHLY7x8ZSEriRj45cu.jpg"
+   ],
+   "posters": []
+  },
+  "jason-bourne": {
+   "focus": [
+    "/kJaRWmy1BGq3pHyE94LOTteiHer.jpg",
+    "/fE7RqvVHbGHjBC9NjIjlLh2t4zK.jpg",
+    "/qiBILuWhv7ipF0pxiEqIJdkQzj8.jpg",
+    "/akNBILfG0vh7WhuzjA1bXfrgpYI.jpg"
+   ],
+   "hero": [
+    "/7mHeyU0a538bgguOeF57I8ZroSk.jpg",
+    "/zxYp7GhqzcNqNSkjHoOdx0BEtOM.jpg",
+    "/g1MFwTP8jQK5RM7Lz0ROZYkEZqI.jpg"
+   ],
+   "posters": []
+  },
+  "mad-max": {
+   "focus": [
+    "/mWQg2INejtX1PCWRAN4vseadA6H.jpg",
+    "/MMSI9WzRmOdqXarevQ3Kqnytrx.jpg",
+    "/cO8zcdPhLT3UdykkXCvfhIVrgHK.jpg",
+    "/uT895WNwm0aIJRtGizcQhrejWUo.jpg"
+   ],
+   "hero": [
+    "/raph7qjAGTMXaIjVxt6ZDSXRzUr.jpg",
+    "/2eYiXlynI2mSuYJPUkHupJm2dJp.jpg",
+    "/8CcjyTF3hXIe2wRdFkv52zkOmO1.jpg"
+   ],
+   "posters": []
+  },
+  "pirates-of-the-caribbean": {
+   "focus": [
+    "/uRNgkJSkNBFbbn9fPsEjDIy8Sh3.jpg",
+    "/vr6n6ZFUZvedvIlhfYcbCWcaKyW.jpg",
+    "/1jHxkVXMI5s3vRiyiZooUy1shB5.jpg",
+    "/uzIGtyS6bbnJzGsPL93WCF1FWm8.jpg"
+   ],
+   "hero": [
+    "/7C921eWK06n12c1miRXnYoEu5Yv.jpg",
+    "/hLh9RX3wUqXp3JTKZHtnQhhsGGF.jpg",
+    "/th05G8e6wPP34pOUVG7HNQbAki5.jpg"
+   ],
+   "posters": []
+  },
+  "toy-story": {
+   "focus": [
+    "/8AqWECiUHnz1Crj69uB9vhiK9Le.jpg",
+    "/nsfVr4QbbunUrHINN9N7JdVAMTf.jpg",
+    "/wE5JGzujfvDPMIfFjJyrhXFjZLc.jpg",
+    "/q62bpQ67qaXY0u6b2wFEnQYIbPd.jpg"
+   ],
+   "hero": [
+    "/qjTqY5coNiz6sVtPng40IzltsoN.jpg",
+    "/bSoOThXLrbgtphS2eZjwy2xYwVt.jpg",
+    "/3Rfvhy1Nl6sSGJwyjb0QiZzZYlB.jpg"
+   ],
+   "posters": []
+  },
+  "gujarati": {
+   "focus": [
+    "/pOee0WfMHRB8VvUnmZ9xhXzW2pF.jpg",
+    "/zedSgAiBlbpnbETIHZjyXsuO3ZX.jpg",
+    "/djD1KKwLiinCpyg31K1l4uHAAiZ.jpg",
+    "/2UkPzslRKYdExioA4ASjWDtYGdt.jpg"
+   ],
+   "hero": [
+    "/tKjWpEF8DFNDC3GwmLUUXwBe5Wd.jpg",
+    "/uhgJPxTZ9IpKgSAC9D73SJO0jik.jpg",
+    "/9XLRqX9bRIHfvH2G5pM9QFyXXfZ.jpg"
+   ],
+   "posters": []
+  },
+  "the-terminator": {
+   "focus": [
+    "/ffdqHMWkh1h9MABwIfbfRJhgFW6.jpg",
+    "/izkMjmhauFx9DjoBQqM5sM5WAwE.jpg",
+    "/voVkSwgFYv9GOpRNfUAwj6qYRTL.jpg",
+    "/uifaXfJxjTMeNttw5u04nHx1G5w.jpg"
+   ],
+   "hero": [
+    "/wvlIoof1FnKPLv9jAYanuP31V0C.jpg",
+    "/a6cDxdwaQIFjSkXf7uskg78ZyTq.jpg",
+    "/ahUaAgnkFu7QlBh5h4LCNeaSurV.jpg"
+   ],
+   "posters": []
+  },
+  "jurassic-park": {
+   "focus": [
+    "/f082quUW2kAtZXFZVGEfhwacZoG.jpg",
+    "/A4rYaPdzgocCjQ0n9LUSYUxyvpS.jpg",
+    "/8v8x4vVbRgrsdU3M4drnD7HQbfe.jpg",
+    "/dF6FjTZzRTENfB4R17HDN20jLT2.jpg"
+   ],
+   "hero": [
+    "/gBmrsugfWpiXRh13Vo3j0WW55qD.jpg",
+    "/9hk5iiycq7ukRAAXQiJT9HZX3SX.jpg",
+    "/zNriRTr0kWwyaXPzdg1EIxf0BWk.jpg"
+   ],
+   "posters": []
+  },
+  "harry-potter": {
+   "focus": [
+    "/5jkE2SzR5uR2egEb1rRhF22JyWN.jpg",
+    "/7tbeoSTWW2cWPecjQo9fcdf0Hzv.jpg",
+    "/vbk5CfaAHOjQPSAcYm6AoRRz2Af.jpg",
+    "/8f9dnOtpArDrOMEylpSN9Sc6fuz.jpg"
+   ],
+   "hero": [
+    "/pkxPkHOPJjOvzfQOclANEBT8OfK.jpg",
+    "/ze6Mx4QE5mQVXRYmG2flncqqle4.jpg",
+    "/slW0M2G9txC0aUbftCTm1nYX1K8.jpg"
+   ],
+   "posters": []
+  },
+  "mission-impossible": {
+   "focus": [
+    "/sra8XnL96OyLHENcglmZJg6HA8z.jpg",
+    "/24DZfupDlhXeTchmcOkoGRhP5Vg.jpg",
+    "/bYKeB9uUcPmvikjouEEQ86uvPw9.jpg",
+    "/hqyjzDRCs1N5gEsh2gklzPdsEFD.jpg"
+   ],
+   "hero": [
+    "/vYIUN5rrCncHFY8WvcuXQlM4hk5.jpg",
+    "/5jnoAA74Qwb5w6B9FMvnc20n6Ie.jpg",
+    "/628Dep6AxEtDxjZoGP78TsOxYbK.jpg"
+   ],
+   "posters": []
+  },
+  "monsterverse": {
+   "focus": [
+    "/6CLNOzMXO9bvapDD8gsdwkJU4wN.jpg",
+    "/n5FGEUmId87nZAdFiOFmCKXynmT.jpg",
+    "/nVodCGKYLpqNC8YwQAbivKlWCgZ.jpg",
+    "/tGum8pp4gImTfFbWjnk1efTZirR.jpg"
+   ],
+   "hero": [
+    "/mzRJpkWPjXdXak0WCc8ZxVH4hug.jpg",
+    "/wWqTMWkEw6HouLd1zPZbZWxtAPr.jpg",
+    "/gvLG3Fnznkxl4SmYfcK8gUuqxM8.jpg"
+   ],
+   "posters": []
+  },
+  "star-wars": {
+   "focus": [
+    "/zqkmTXzjkAgXmEWLRsY4UpTWCeo.jpg",
+    "/k9pshruhCpJAdH9RaGJO6jaWQ4X.jpg",
+    "/ziECpBRIyclmBNaFSWlvCfsKbMD.jpg",
+    "/3TeGmKJfkik1D1rIoqGb1aR4k9c.jpg"
+   ],
+   "hero": [
+    "/cxvr2IOTwHcQa3EqMoQ8RHCkqBG.jpg",
+    "/5vDuLrjJXFS9PTF7Q1xzobmYKR9.jpg",
+    "/8BTsTfln4jlQrLXUBquXJ0ASQy9.jpg"
+   ],
+   "posters": []
+  },
+  "conjuring-universe": {
+   "focus": [
+    "/ecKQlAEG95k62SMGhvX83oEqANK.jpg",
+    "/pWZ0srAfPx4XyJMlFkKBlmYfx3C.jpg",
+    "/mFCS5OuhPYT79KXu5jl7RqznPR1.jpg",
+    "/sxNGD6Wxp7qNUjKN5jLeZk4ORAy.jpg"
+   ],
+   "hero": [
+    "/cMnVmutb5mVgIBeiMOncAbwNjvG.jpg",
+    "/8MCCpfOe7hkG28cNmkXVrOWRIlK.jpg",
+    "/tKgOSGe3f8qG5EqG0I82NHJmCRS.jpg"
+   ],
+   "posters": []
+  },
+  "fast-and-furious": {
+   "focus": [
+    "/jY9ef5nqY4xIIMu3yzW3qamUCoi.jpg",
+    "/90ooE5SbUEO0OVJHewNO7pgySb6.jpg",
+    "/dMARcKLrv0T7kVJ4iQR3vqTTdtT.jpg",
+    "/25HepicRtrzZ3MVCqhfoxGDbHjw.jpg"
+   ],
+   "hero": [
+    "/tQN9JEQ4N4aqej7O6AkQtt0dLpt.jpg",
+    "/u1IfymTvKtftECKJR1vVF0mkvKV.jpg",
+    "/ehzI1mVcnHqB58NqPyQwpMqcVoz.jpg"
+   ],
+   "posters": []
+  },
+  "most-watched-this-week": {
+   "focus": [
+    "/kKTPv9LKKs5L3oO1y5FNObxAPWI.jpg",
+    "/x9td0NQha0t44K2qgcMipLOGjVi.jpg",
+    "/9PRKAdrDvAdCfg3EcApLTfzGsEt.jpg",
+    "/keIxh0wPr2Ymj0Btjh4gW7JJ89e.jpg"
+   ],
+   "hero": [
+    "/mQOUyqDybTqxl73hO5LujCZsM1o.jpg",
+    "/5cRw2QHQz5bp7W2KLdSpZoFoTTw.jpg",
+    "/qAzYK4YPSWDc7aa4R43LcwRIAyb.jpg"
+   ],
+   "posters": []
+  },
+  "comedy-franchises": {
+   "focus": [
+    "/vstG9R65y2GlWbmrd1KJx2Rc300.jpg",
+    "/AkfqKaD1KqfIqytxLvWlyKJRlEi.jpg",
+    "/8ODibBEc0ETUGfJFkqEg7BXCM8o.jpg",
+    "/smaFFzbd1flJKUqDI2ylljQ8Pki.jpg"
+   ],
+   "hero": [
+    "/zeSJtqZXLqCVZ3D7G5wfIQYFCCk.jpg",
+    "/urK6J2WurQ9NIcsAEVdCCkfoRWo.jpg",
+    "/fyAOfkkxouFcxexrCWbTc66TmeV.jpg"
+   ],
+   "posters": []
+  },
+  "punjabi": {
+   "focus": [
+    "/xf4RWs9M3USzgscDBIZP93BwpGE.jpg",
+    "/ewagpQ9VwaaiH5BHGHuxiELQ6kq.jpg",
+    "/g7BLrCt4YTMGy2owE9qHxjC8ES.jpg",
+    "/u927k3O6hvGCccmOnLUiqgYeF0B.jpg"
+   ],
+   "hero": [
+    "/yNsnlrXRH0nAGZMqegdl7gCCArr.jpg",
+    "/fRwDKL8kuBZZNOtXvNxag8bXMYw.jpg",
+    "/wtlXzNL1DFXJbpOAimSv2whFDaB.jpg"
+   ],
+   "posters": []
+  },
+  "quentin-tarantino": {
+   "focus": [
+    "/9KZ0c6sPo8ssTvco409XR8PtYgm.jpg",
+    "/7g1zO5t0bd27Iqn5ZUDJmksOGPJ.jpg",
+    "/2oZklIzUbvZXXzIFzv7Hi68d6xf.jpg",
+    "/gxSWwZyYPA50f5T2IJzFX4NzxAG.jpg"
+   ],
+   "hero": [
+    "/bMJxwgLyD47CDQ6BFCT2AMMlID7.jpg",
+    "/qbVCChwbGWDAgsCXKZxyjBrRiWx.jpg",
+    "/gRd7O8TRijlJK81ONZSEZfV4Ubn.jpg"
+   ],
+   "posters": []
+  },
+  "stanley-kubrick": {
+   "focus": [
+    "/aC6wW62V6b0csr5iUnbOjYAqfhg.jpg",
+    "/3k2TRmqMjgt7tcwkYwZQdctnty3.jpg",
+    "/AdKA2F1SzYPhSZdEbjH1Zh75UVQ.jpg",
+    "/okdg55jhsr9k1F2lxsZoQncrLZL.jpg"
+   ],
+   "hero": [
+    "/3hwKS7e21hzEnXZaOs2FE6e97bc.jpg",
+    "/w5IDXtifKntw0ajv2co7jFlTQDM.jpg",
+    "/7i0L2ee4Iy0aXV6vR5u1ZmblOrx.jpg"
+   ],
+   "posters": []
+  },
+  "bong-joon-ho": {
+   "focus": [
+    "/vmHMnZ1RQNBP0wvkF453qYMIjNb.jpg",
+    "/TU9NIjwzjoKPwQHoHshkFcQUCG.jpg",
+    "/x8PmjDi2mkAKznApIz78C9v3tvt.jpg",
+    "/55vkNtb83bSwbdWrQTVZTGLBcLx.jpg"
+   ],
+   "hero": [
+    "/ecU75TpKmgRavy3IIWhEBQzkisX.jpg",
+    "/mjtocjdhqJNnppHIgBesT3BBIOi.jpg",
+    "/hUpP1NUVKCg66xFBWjSSxaLzJx9.jpg"
+   ],
+   "posters": []
+  },
+  "james-cameron": {
+   "focus": [
+    "/vTk6KQRLomlkMG5xqQIrzvyQB8z.jpg",
+    "/6j7H5SrwN0GMUMD2AvIzvauRXV.jpg",
+    "/EKgE2XEu6Gr6IdFX2oJ1Bm7Zqy.jpg",
+    "/us2aG5buhsLUYz4Npcx8i8HvSDs.jpg"
+   ],
+   "hero": [
+    "/gvW5ekALVRuuRsgJIChFRRHbYwg.jpg",
+    "/sCzcYW9h55WcesOqA12cgEr9Exw.jpg",
+    "/j0qlIW79EoRM25ZcepPBzU9dkH6.jpg"
+   ],
+   "posters": []
+  },
+  "christopher-nolan": {
+   "focus": [
+    "/c7btGYblBnfAaw713WvFM0Kimc7.jpg",
+    "/neeNHeXjMF5fXoCJRsOmkNGC7q.jpg",
+    "/pTwF9hLkqAtuOqXMdOyPwz4AgnI.jpg",
+    "/ArBSyfVp4oEaDPJjkDPebEZu0KD.jpg"
+   ],
+   "hero": [
+    "/8sNiAPPYU14PUepFNeSNGUTiHW.jpg",
+    "/8ZTVqvKDQ8emSGUEMjsS4yHAwrp.jpg",
+    "/yaExZh6qE2cfyK3o4kAMEq0mkgy.jpg"
+   ],
+   "posters": []
+  },
+  "david-fincher": {
+   "focus": [
+    "/aRO4TuqF8dkRCb5tPlsSlpJbmQD.jpg",
+    "/f9Atch0jlzcOT9RbF8UccqfNOpd.jpg",
+    "/hBOH4PNnhcGPgZbZjBwkx9gnNxI.jpg",
+    "/iWak7wT0j6ycCc8lKr4NBz9c7n5.jpg"
+   ],
+   "hero": [
+    "/dNFbrnF0mIBm0rClbfEFWTtsgMP.jpg",
+    "/ajfBOXh4q1X7g8hdW3K4DAotOpq.jpg",
+    "/1PXwh3nJzgRkkYnqfWInJNypeL4.jpg"
+   ],
+   "posters": []
+  },
+  "indian-universes": {
+   "focus": [
+    "/e9ZEuHGHZ06AToHlfN1L7nejJ7W.jpg",
+    "/4i1ofsSpfTuswHXcgPtXbZrSnoe.jpg",
+    "/jQIcn51nsvMrpB9NFwEOb9QHhFt.jpg",
+    "/kXElm7wt2kAXEVwJqW4cFhP43nW.jpg"
+   ],
+   "hero": [
+    "/seTFDq1iKyJ6YHr7HePbC20DMsy.jpg",
+    "/hEwPNUPLim6XxelWKkH4zGXdenx.jpg",
+    "/whNjsTOUVg2lZLCKgGhnACnmV8E.jpg"
+   ],
+   "posters": []
+  },
+  "denis-villeneuve": {
+   "focus": [
+    "/gNdLJU9TxrpGx4dkZidjys3fyy0.jpg",
+    "/8MUZz7oPXQftFTslZpRP3CVMOoq.jpg",
+    "/fKPgObonYgPgCdu88yjV7Hpn7Dp.jpg",
+    "/deYWtXTc56YdXyIuuMuA8dvBY16.jpg"
+   ],
+   "hero": [
+    "/3RFmTz5h2UuFWEV4oH00XICBR9y.jpg",
+    "/pyI0dZjgKHiiwu1VbcUlJUFpBLW.jpg",
+    "/b6CD0FsROA8zlaFJSPU1RyInt9I.jpg"
+   ],
+   "posters": []
+  },
+  "wes-anderson": {
+   "focus": [
+    "/bajke0ThKJ2V2iHE9DDYOJGdS7a.jpg",
+    "/9MVdbQVNZA92fh4klywkNPbBeKC.jpg",
+    "/hrqPHNioMoCVyyh8FCcaINTv6Nu.jpg",
+    "/aQuzqump4Zjh2bCoymZ2POLlNYt.jpg"
+   ],
+   "hero": [
+    "/oIUDSK3CCqkpe6lct8YPuUupFes.jpg",
+    "/dS4JR8gmj8UnamjuLEyAkEFoppy.jpg",
+    "/dExUxMWt0UjS93waeCGYeDr1D7m.jpg"
+   ],
+   "posters": []
+  },
+  "imdb-top-250": {
+   "focus": [
+    "/v8xVDqt8uCul3c3mgx4VpGCwxJC.jpg",
+    "/tsRy63Mu5cu8etL1X7ZLyf7UP1M.jpg",
+    "/ejdD20cdHNFAYAN2DlqPToXKyzx.jpg",
+    "/1DYpBOVdb7Mzc9DgMCdIBTN1JEC.jpg"
+   ],
+   "hero": [
+    "/rsQDFOcMvmX93MNot0bwLaRi9hK.jpg",
+    "/pGzqRKrYeK4LogoysNro0vG8d8N.jpg",
+    "/2yDV0xLyqW88dn5qE7YCRnoYmfy.jpg"
+   ],
+   "posters": []
+  },
+  "james-bond": {
+   "focus": [
+    "/srgq7bzZsuDw7NoGXdazRXp7Hl6.jpg",
+    "/8JMiQa0OqsCYvbNUrQIrMzwV7g2.jpg",
+    "/mM4WeXqJd2tu1gCF5GYyAZf2Npl.jpg",
+    "/7DLCXCQx52YLle1qTokrjROTwVV.jpg"
+   ],
+   "hero": [
+    "/cpZAXIYA0lkZMpAt7d1MmH8ojNV.jpg",
+    "/1kdyLiE2Mqt7cxnivdPX3qckvfW.jpg",
+    "/pyTDtQCn5sG8gi2zkM5ZylSNmtJ.jpg"
+   ],
+   "posters": []
+  },
+  "marathi": {
+   "focus": [
+    "/A3N2gPmaJ4eQjbNJgH64cYnx5K7.jpg",
+    "/mUbq0l1nGHbyFyNncxvLJMKXMUw.jpg",
+    "/fLpDFeToCC3E2QL0WwhEkuvxtLO.jpg",
+    "/vBId5iBnayC6yyqKFeX9shSaoCQ.jpg"
+   ],
+   "hero": [
+    "/bSDjr1bZHcAR4ukgqAT2cDpjeLZ.jpg",
+    "/lK9R56dfj182Uz4THzEZ5vrUEn.jpg",
+    "/keU0BP3XnfIBgZEfI4rErD3Xnpx.jpg"
+   ],
+   "posters": []
+  },
+  "hayao-miyazaki": {
+   "focus": [
+    "/75nSb1fbWooipwcSU5bUttiOriI.jpg",
+    "/dzMhad0fWj0Ds9viupza6wT8QRt.jpg",
+    "/938lqhAQaO3hmLg44VbUR7OqlMs.jpg",
+    "/5NFBFjD07jDtgg8aOqVafQ7rMN1.jpg"
+   ],
+   "hero": [
+    "/nlegyE6pG4F2TaA2MbhyYFXdUhb.jpg",
+    "/1QmEcK0w2Ub4Hm094fHbZT8vA7o.jpg",
+    "/eDuBJ9Lf8empaGgXHe4ciUR7iFM.jpg"
+   ],
+   "posters": []
+  },
+  "ridley-scott": {
+   "focus": [
+    "/3k7GzxOdLZkN3eZsuhLi2eRzkXO.jpg",
+    "/tOqIwliWMovSIZ9DyvHcHI7p2im.jpg",
+    "/33pMXav77ICRnceEBLhL8lXTywv.jpg",
+    "/6VZF8JVNOgJX56WCapYaqcVQiAw.jpg"
+   ],
+   "hero": [
+    "/4LrL40XecjGLRpX5I2gzMTUt04l.jpg",
+    "/wJLTRnFKAVDDD7ci2L1eVnNJ7aI.jpg",
+    "/agdo4KNe15yYQWyieUITpp4hppC.jpg"
+   ],
+   "posters": []
+  },
+  "steven-spielberg": {
+   "focus": [
+    "/1e0KDRYKRPHiVNj8yQKYuU2jVyQ.jpg",
+    "/xQyGkQ8ICa4lgifGr3oZjkm3AJ2.jpg",
+    "/exnFsbb9c3fDutTsgtJSWcDmZm0.jpg",
+    "/5a7lMDn3nAj2ByO0X1fg6BhUphR.jpg"
+   ],
+   "hero": [
+    "/8sb4aBST28vN3rBz704XJczS0Ld.jpg",
+    "/tOTtJelsPKX0bvSdvDVL2ou3cGS.jpg",
+    "/12M3SvYO4WMdlXCajWklz1zUAly.jpg"
+   ],
+   "posters": []
+  },
+  "kannada": {
+   "focus": [
+    "/tBRSSfgqOAq7YlG8udcoJIBm2FG.jpg",
+    "/b7e2wnA1Fe8omvEyVhpT3BuYUAs.jpg",
+    "/nsV5Mfi9FAV4w8eDsdr7uqVswOk.jpg",
+    "/w57nxiBIODAYHLRs1xmrCY9zEFe.jpg"
+   ],
+   "hero": [
+    "/zjBotOQpewbtkxeG0YLugEft5NE.jpg",
+    "/mVtc8uLWtqwqorHl8UkhtxWNUJo.jpg",
+    "/r9GXAvybRDx613LzNRnZAPJyjrI.jpg"
+   ],
+   "posters": []
+  },
+  "martin-scorsese": {
+   "focus": [
+    "/jwjCWMPWSQ7h3sqG4mqI7pMEZu0.jpg",
+    "/gknnHhpNT2kJSNu831eS7gjJVMn.jpg",
+    "/mpbA9rafSetOx07wRP6AXu24c67.jpg",
+    "/g6whTC4GcRML8E5Y3oXisFSGxbe.jpg"
+   ],
+   "hero": [
+    "/1RDto0tLo8Fhq7OcwgDaM7nECb7.jpg",
+    "/4MYtYsSGzQUUYQqHGWBNeEkT91s.jpg",
+    "/2tE0A6WjLowwQOUY8se1Xlf3O6U.jpg"
+   ],
+   "posters": []
+  },
+  "legendary": {
+   "focus": [
+    "/zDE9hd1SG9695YncbZGjSf7Z9Jk.jpg",
+    "/rrII8v7ExyX9KzyHopW6B9mfrOD.jpg",
+    "/jLuGZc84MvPYCQomQg9DI72mstt.jpg",
+    "/qdyeQg2gWj1L8cDlwU3tI4s0Hub.jpg"
+   ],
+   "hero": [
+    "/qo7WRoSXkpgvmc9TgaklzrsukLW.jpg",
+    "/2Nti3gYAX513wvhp8IiLL6ZDyOm.jpg",
+    "/3ObFbh3rEQ2ZmOsJ6DvZazW72Oc.jpg"
+   ],
+   "posters": []
+  },
+  "coming-soon": {
+   "focus": [
+    "/rObL4of4eFA8yWaN9pRFo9aOVNi.jpg",
+    "/i5E9H7Ik0u61ylDDTbmUpTL3Yw.jpg",
+    "/ixHRFxlPRqCvCJ5gk0aScUAEfrx.jpg",
+    "/pJfMliqzzVzTU634zpYDMfYNX6c.jpg"
+   ],
+   "hero": [
+    "/ovHvZm64SPWJyE3xbEFfDsFmaR8.jpg",
+    "/vaYfhMuwFwsMqyMnu9amtS9hUHE.jpg",
+    "/mjiDUz5idO9LrJC40JphKmSqjfF.jpg"
+   ],
+   "posters": []
+  },
+  "fantasy": {
+   "focus": [
+    "/seAIZLEq2Il2psjMUREDbSdRmbu.jpg",
+    "/g1bEboMx1a8JCg1jXeDCh24RtgW.jpg",
+    "/sMmG82PtjK8A9rVc34gwKQtCm3A.jpg",
+    "/274ahmbkJSzdmcWrWSTu9DFv5rp.jpg"
+   ],
+   "hero": [
+    "/prbMZ3DPf8taS6JYQd6igPnm2mA.jpg",
+    "/2o9FzuBzCqrDTdlHRuEVnGD2d5h.jpg",
+    "/hofnlIyF6bePkgQOpcuRWLvzf15.jpg"
+   ],
+   "posters": []
+  },
+  "indian-directors": {
+   "focus": [
+    "/wCwZ4ljSsWyZyTiyk1tGQtBHTDx.jpg",
+    "/of9YQ9XE2aUVbiorECRnFCu5iIn.jpg",
+    "/uuw0PRR4sgGi1IV4CYYpEYtez9y.jpg",
+    "/7jGItf7idJsBm9QTNoTNTU3KiGe.jpg"
+   ],
+   "hero": [
+    "/btBN7iV1CT1R3sbMzPF0iz8nbnn.jpg",
+    "/zUioX7v6GBZm2TKySkpxitQuPtx.jpg",
+    "/kEkSoBeInV3bK6Havp1TRys1vD7.jpg"
+   ],
+   "posters": []
+  },
+  "romance": {
+   "focus": [
+    "/qHvap0vpfTBIbv7cnR0OyBRqQHG.jpg",
+    "/bybAHw5fenKXRFI4phanPhpljlT.jpg",
+    "/7VDLEHli74eLsYLNcq9djn1Gw76.jpg",
+    "/rPHvIqO4KuVPxlfwbsnROFbCzQB.jpg"
+   ],
+   "hero": [
+    "/hbz4aeVsjnKb2HRoFbbr46Egh8y.jpg",
+    "/nfNaAiiILjYRc2CKkId1ZfPTtlh.jpg",
+    "/rVT4vFJgcvou2j3CQTOAlCqedSh.jpg"
+   ],
+   "posters": []
+  },
+  "history": {
+   "focus": [
+    "/zb6fM1CX41D9rF9hdgclu0peUmy.jpg",
+    "/xpImgnsxuqb3VOp0QRtXTS5uBRi.jpg",
+    "/vDKRMZGFTKP9nQolzeSB1rB1w6p.jpg",
+    "/rW2xRFlJRbTnBJlQTSjQmjevIwb.jpg"
+   ],
+   "hero": [
+    "/8FCHJ21JBQOgATY2WI8vwYAiXg8.jpg",
+    "/i0Y0wP8H6SRgjr6QmuwbtQbS24D.jpg",
+    "/kP8rK9dGS1pr0HrnmXfIi2heWjo.jpg"
+   ],
+   "posters": []
+  },
+  "indian-web-series": {
+   "focus": [
+    "/xhwbLfYfKimKYpzjzk5KOmGIWwX.jpg",
+    "/tTYP1npvBU90NthceezScfXGiOl.jpg",
+    "/iZ8EtGAqKWZdRJPzWfFseNfVxjh.jpg",
+    "/A7A1s8O4M2rFlAbbcSlIxrgCY9i.jpg"
+   ],
+   "hero": [
+    "/2Lf1OddXygg3tBrAA0qNttOiBbS.jpg",
+    "/u39VepT8l7cgDy9nsXG76t4av9n.jpg",
+    "/s7dpEDsAan8mvC5cikvWidOupsO.jpg"
+   ],
+   "posters": []
+  },
+  "a24": {
+   "focus": [
+    "/rrbbzCyS45yooXpUGJatfptlHYI.jpg",
+    "/cn0BAoregZTYm7hG58pDFIfPjAr.jpg",
+    "/sEsMwSDUWGIx9EfNxzM6KzVSsSQ.jpg",
+    "/aJN0VtMbtYndK0M0XoaoKBoAzPu.jpg"
+   ],
+   "hero": [
+    "/pmPXXniQlb4EdYY0gVZO90rf54F.jpg",
+    "/9K6QtLqyocVHgIZe4yqCIl1q2ZR.jpg",
+    "/uQvz6NdyhoWE6dMurFn0BriLIv9.jpg"
+   ],
+   "posters": []
+  },
+  "action": {
+   "focus": [
+    "/cKvDv2LpwVEqbdXWoQl4XgGN6le.jpg",
+    "/2tL3pNaPQb2ioEYswMkDGVTo1pt.jpg",
+    "/vcFW09U4834DyFOeRZpsx9x1D3S.jpg",
+    "/1gZrOa2E9DOohEvSLLBJqus2zGu.jpg"
+   ],
+   "hero": [
+    "/aqFZcr2dxSZ2UwWSo1WC6C0rwDf.jpg",
+    "/efeMgQn6iRALsOqDa2cqlf6Pw5O.jpg",
+    "/uVOcz7JBOuZxsx9IYpx6Ah174LX.jpg"
+   ],
+   "posters": []
+  },
+  "animation": {
+   "focus": [
+    "/jbTqU6BJMufoMnPSlO4ThrcXs3Y.jpg",
+    "/5MWFjQ3NuNtNeOE9FdrVLeNMNPs.jpg",
+    "/bauKfP3CX5JPAXpmveOlPG1pngC.jpg",
+    "/rueyXwlewVPAP5NkqCUJx4RjhqB.jpg"
+   ],
+   "hero": [
+    "/jIArNHIekrCSVgdMbKPAXpPY03Y.jpg",
+    "/f3f5OzzYd8m3zN47DAjKs0sbx00.jpg",
+    "/sl5NJ1vtyhP9Vr88bB4blULsJYp.jpg"
+   ],
+   "posters": []
+  },
+  "anime": {
+   "focus": [
+    "/dyJvKsNs2KP8qQnAXbRwDjblViy.jpg",
+    "/c2oiRa7V3bQzof4wVGzLXtWJ5QU.jpg",
+    "/1RgPyOhN4DRs225BGTlHJqCudII.jpg",
+    "/l2Gk8eFrPHn6ltT9PtfmdyvqFsG.jpg"
+   ],
+   "hero": [
+    "/AfyuI3glMCBDFmNPj9PY6DwbgGp.jpg",
+    "/yYpQV25I7XB6S0POJOScPjxYWV5.jpg",
+    "/vuajwjep1FxphPhMEWKv4bfrCnf.jpg"
+   ],
+   "posters": []
+  },
+  "anime-studios": {
+   "focus": [
+    "/gtKglOSEq3d4MgQE4VsrT1sRkd0.jpg",
+    "/nBKrBDxNx10SuAKPLRtBXoRku5y.jpg",
+    "/hUkFUI5wKYAihLOks7RVU0TfzUS.jpg",
+    "/gmECX1DvFgdUPjtio2zaL8BPYPu.jpg"
+   ],
+   "hero": [
+    "/uqOcBHNHsmYPePmrvYhjraRxLdJ.jpg",
+    "/vB7HwJNhlRA9tPViK32bK0hVCmb.jpg",
+    "/2rmK7mnchw9Xr3XdiTFSxTTLXqv.jpg"
+   ],
+   "posters": []
+  },
+  "apple-tv": {
+   "focus": [
+    "/gPQppUnLx9vqPDLz3WwZ2HJsNbt.jpg",
+    "/vOByLZRhCIIItlSlCT7bYbI9MYL.jpg",
+    "/4bG49jVR7NrCNQjahDUsDqvIwle.jpg",
+    "/jdJsnhHfkIi3J7jwfiCFT4gXNx5.jpg"
+   ],
+   "hero": [
+    "/lfxJ4XNXClsJTKhweJtV4644lya.jpg",
+    "/suaEOtk1N1sgg2MTM7oZd2cfVp3.jpg",
+    "/614k6C9doThoMe6GyH0nTnGgLXt.jpg"
+   ],
+   "posters": []
+  },
+  "bengali": {
+   "focus": [
+    "/wadoNHCMPElgYuOqLxqDQqXpTMx.jpg",
+    "/tydmxaf6bjE6pEmHGblYl9JpNNI.jpg",
+    "/wUlvM4v5FUjM2omyld9ULVHONZA.jpg",
+    "/6FeiucxTA4QLWhEmG56HPbFbYOT.jpg"
+   ],
+   "hero": [
+    "/737yEOtwAASjjMSPvlMa8cMnzwi.jpg",
+    "/7Rwgh3wXq9vbIocPbYFoTREY7mE.jpg",
+    "/d3RW7jRsBCHfC9QZaUF9FpzJrh8.jpg"
+   ],
+   "posters": []
+  },
+  "best-of-the-best": {
+   "focus": [
+    "/caBIySpwuFi2i7ynvHIlnxJLOdN.jpg",
+    "/5UOJ8wYxblPNE9KIdzbGCUC7gti.jpg",
+    "/8phLVFEXOe02JgFmH9ldn3j4tXW.jpg",
+    "/bxSBOAD8AuMHYMdW3jso9npAkgt.jpg"
+   ],
+   "hero": [
+    "/ezbrL1dMymKQZw7mDEWa2ZTzN7d.jpg",
+    "/fpmRRiMcatplfCgbjzmWjGAWLrH.jpg",
+    "/l0fNAHLOFReQJsxCOmGWvJDnimn.jpg"
+   ],
+   "posters": []
+  },
+  "blumhouse": {
+   "focus": [
+    "/7t6f6VxA2ZXbbZSVctgt7bZG2DI.jpg",
+    "/3yQV8aUxMYeSCVF6R5Q6xcaMZsl.jpg",
+    "/5lTZyuBTNOfawsfPT8Q0cIg6qAF.jpg",
+    "/xugEpZk9YQ0DIz1aFvH5HGkqpZK.jpg"
+   ],
+   "hero": [
+    "/laWV5ohHOxYnCkvrJcZf6IDOIDO.jpg",
+    "/jpwDrbDd7LuozKPieAfSTUue45a.jpg",
+    "/6zKjoOOb3OZnZuiHtQZn4Kd69Gq.jpg"
+   ],
+   "posters": []
+  },
+  "by-runtime": {
+   "focus": [
+    "/uAe2LEuZ2xg312FY7D8Ei4bl0aG.jpg",
+    "/iZLqwEwUViJdSkGVjePGhxYzbDb.jpg",
+    "/c4U96GrPRfnNrS01mBtqnocvlLJ.jpg",
+    "/9uW5X9fdtfJp0bSW60Eqh0lqcEt.jpg"
+   ],
+   "hero": [
+    "/qqHQsStV6exghCM7zbObuYBiYxw.jpg",
+    "/2I1OFQJ0L9T0dpU6FobKFWV2PxX.jpg",
+    "/kkcwhgSFd81QDlXo8ytrpHPQjhy.jpg"
+   ],
+   "posters": []
+  },
+  "chinese": {
+   "focus": [
+    "/4BtL2vvEufDXDP4u6xQjjQ1Y2aT.jpg",
+    "/g2IyljMEp9HcFEUKudIsoVkG0JG.jpg",
+    "/1AVF2fAevpfi2HP6AEpptG1kg8R.jpg",
+    "/pvOI0jUuBVigqNTXClGGhIK2dSk.jpg"
+   ],
+   "hero": [
+    "/J1UgJwRxDQS92kw75KgeVFZMHf.jpg",
+    "/cakRVxJh1MI8Sj3aJ1f75uvUSze.jpg",
+    "/lU1fQews2gye23PocVE48CsTmOQ.jpg"
+   ],
+   "posters": []
+  },
+  "comedy": {
+   "focus": [
+    "/8MQeyFsWrp2ILjbumtxrinmk7t4.jpg",
+    "/959IFVeGqz2M6qGvQ1RxN2r6Mq6.jpg",
+    "/uxGoKyTnXylK5M4z1hyyaWbmBV7.jpg",
+    "/xV0JOheZzmemwdpq1fahTnfAUoU.jpg"
+   ],
+   "hero": [
+    "/d87JXX3DLkRJMfm5StCmmnmhHuX.jpg",
+    "/ih2xVgeMS8R5WUetYE8Mr9hVTlB.jpg",
+    "/coHpOy9OJyFiHWeH36cSHMpLUHC.jpg"
+   ],
+   "posters": []
+  },
+  "crime": {
+   "focus": [
+    "/bjt53Hjqwl9VrtJkDv39GwmE1QN.jpg",
+    "/AdlDrgoNCDu3naYjZMwmiklBHnV.jpg",
+    "/z3OgVzd06puEx9KD68T5zzFTrdt.jpg",
+    "/aQTtua5pG490fMfeKgtYg5B853e.jpg"
+   ],
+   "hero": [
+    "/8I4YFWgi9IZW4VUi398A0BqLnm.jpg",
+    "/h0OC7ouop8YLwbAVfS3UUE2Lw4T.jpg",
+    "/rJFqKcmMSttdNP58l0dVzY2NcTA.jpg"
+   ],
+   "posters": []
+  },
+  "cyberpunk": {
+   "focus": [
+    "/3L8oAMr4B72XNoKAs3FY9EfKcVY.jpg",
+    "/bknKZO7DWVYKeByuJMnGI46PFZg.jpg",
+    "/2spEHYDcyE9r9mS7AFEscfKVDzO.jpg",
+    "/skDqFjFqGtPIqcwLkqzqV4aSlCb.jpg"
+   ],
+   "hero": [
+    "/jW21PoKwqs79wk6bfiYezox63mK.jpg",
+    "/2NNKYsWXoO9w8fMctWX7utqyh95.jpg",
+    "/A8We2BSM6hJ1VWzncssnU2fFsft.jpg"
+   ],
+   "posters": []
+  },
+  "dc": {
+   "focus": [
+    "/f1TVhqJJdxMvUsUDuKHS0ekgYkk.jpg",
+    "/heZQmyNvkH236ha2M3JckdUQQqb.jpg",
+    "/gyrHvf5b5XoKj9VKibqkRxXLQui.jpg",
+    "/eGX66zonvc4bXg3rM08RUxdYSDx.jpg"
+   ],
+   "hero": [
+    "/k5F9jYfcsp4EFDVaUvyWd1uyXsX.jpg",
+    "/dGGjuaUR253aAZ2Zhto2Y9TR9l6.jpg",
+    "/4cazJU7Jjb5EukxmT7XRCoO9VnV.jpg"
+   ],
+   "posters": []
+  },
+  "decades": {
+   "focus": [
+    "/aHaqZpOL7UyVu0nKqp3SMz0o2E1.jpg",
+    "/2YQFwn9aF7huTFHxn9lFTAn14F.jpg",
+    "/zoVeIgKzGJzpdG6Gwnr7iOYfIMU.jpg",
+    "/mMtUybQ6hL24FXo0F3Z4j2KG7kZ.jpg"
+   ],
+   "hero": [
+    "/vVr85HL3nXCHkeXjt8k4OjQntle.jpg",
+    "/tkDruUs0xEXkRjl747kWuQLU9xk.jpg",
+    "/900tHlUYUkp7Ol04XFSoAaEIXcT.jpg"
+   ],
+   "posters": []
+  },
+  "disney-plus": {
+   "focus": [
+    "/5G4Bnc4Q0YUK1bwLEUYmIsmm2Ib.jpg",
+    "/3f8aW6vcYRP6mTZdgXm83BiuB9t.jpg",
+    "/c6BPbkO5Npt1OdwttAxCFo06wtH.jpg",
+    "/fNcpHmuZLKoyhNMBEzdqzX8iIvg.jpg"
+   ],
+   "hero": [
+    "/tHZsAFdtNsKNxE58jopl9Eh4f7a.jpg",
+    "/lH22EnM0ofC7GsVGU8dAA2RXV1c.jpg",
+    "/by8z9Fe8y7p4jo2YlW2SZDnptyT.jpg"
+   ],
+   "posters": []
+  },
+  "documentary": {
+   "focus": [
+    "/6tIHF6spOHL5rQ5HoQ3EVyL5uag.jpg",
+    "/dUbP1HNdI0aCq1zgRJw28PWSqmk.jpg",
+    "/vqm22ecqtzy5Olr74mkUV5lWa9g.jpg",
+    "/qSuSc03Kz90CtrIvaYBdYuyMpkd.jpg"
+   ],
+   "hero": [
+    "/8rft8A9nH43IReybFtYt21ezfMK.jpg",
+    "/4Nbq8ARdNjZsurfuPjnCBRRXKnA.jpg",
+    "/inju8joDtL7KHtlFEGjFZ2UuqFa.jpg"
+   ],
+   "posters": []
+  },
+  "drama": {
+   "focus": [
+    "/dg3OindVAGZBjlT3xYKqIAdukPL.jpg",
+    "/z26LxXDMmAIzKr06FPDudCJyvsM.jpg",
+    "/wXTaGcqX3jvdXSKCJAkl5jZyrKp.jpg",
+    "/bDsmYvrzto7xrEwqDpLC3SPhn9A.jpg"
+   ],
+   "hero": [
+    "/gwXnESfjDqop3tDLoGxSwCUP8GD.jpg",
+    "/n85GMdNw2pDVtkgoTdpHNpM89Uh.jpg",
+    "/lirPqYLTtd6XZqGn4cS1wiesTq0.jpg"
+   ],
+   "posters": []
+  },
+  "dreamworks-animation": {
+   "focus": [
+    "/4nBxazVPqf88v4omVqGJSUoX0lE.jpg",
+    "/jvpkBenB6hv19WWYVlaiow8zklq.jpg",
+    "/8J6UlIFcU7eZfq9iCLbgc8Auklg.jpg",
+    "/8AB5RICfiOostsJjZ5kVV6IHPUs.jpg"
+   ],
+   "hero": [
+    "/iXU87IdtNsYt7n6OigPJBDdbFf1.jpg",
+    "/1pmXyN3sKeYoUhu5VBZiDU4BX21.jpg",
+    "/zLj0peaxy5y2SlC6wNIQ4V0pfqg.jpg"
+   ],
+   "posters": []
+  },
+  "edge-of-your-seat": {
+   "focus": [
+    "/yE766yhgg98tKwTKd8CyNvAtmn6.jpg",
+    "/nGau0KBOaRILSK5MqFcuTfv7GMl.jpg",
+    "/snYOXem8pUGOffnLbbGq4aB1pg4.jpg",
+    "/qDa0fqDqIBCovRp975RvtGPcuN3.jpg"
+   ],
+   "hero": [
+    "/br4Ra4dRpvR0R7a1zPPkOwGkcky.jpg",
+    "/p40lmrdI4blcAPZQMTPaiy5v5Ym.jpg",
+    "/xsoKAonKy1zk5XoQoUG1dUXDCKH.jpg"
+   ],
+   "posters": []
+  },
+  "family": {
+   "focus": [
+    "/55tcKzl0gZ0lR1q7TrVJm0h9lkT.jpg",
+    "/bIHCUqaapZdRjd2kzSDiwzYyrpC.jpg",
+    "/tKYOK8iMxkhJhug3LJ2yvC5QY8M.jpg",
+    "/5QFtLmg5A6lnuowk1OGVlQKDiud.jpg"
+   ],
+   "hero": [
+    "/dyFTt1a9ZpFdKE96kPlE9fQvXOJ.jpg",
+    "/6oVBODwFvbDJczBFlf4J930jKZg.jpg",
+    "/aT8Uk5uQKBJ3Syt63SNdlPUwqI9.jpg"
+   ],
+   "posters": []
+  },
+  "feel-good": {
+   "focus": [
+    "/u7kuUaySqXBVAtqEl9vkTkAzHV9.jpg",
+    "/8fnYJPoXxwAN4valDLgz2whMGTH.jpg",
+    "/npXZNWjOEYrqdMDPQ11SGBrXqAG.jpg",
+    "/kxQiIJ4gVcD3K6o14MJ72p5yRcE.jpg"
+   ],
+   "hero": [
+    "/lgotja3xMoJZbynwHfcQcJAEMWH.jpg",
+    "/5sBnZMT1aJ6cBvehKOzOOLdI6bz.jpg",
+    "/hiazLNa1UXuX35OTnMQRKOx3eTk.jpg"
+   ],
+   "posters": []
+  },
+  "french": {
+   "focus": [
+    "/q6OGlZ1KMEb14AC8KbPCxyNOal6.jpg",
+    "/aizbHLcKVWvJ7jxkflJzTu5Z8GE.jpg",
+    "/fj0hwDJEOOHllRim2BMt5L7tbjf.jpg",
+    "/c6nAwZgiMobI3HrmZR78wpIjSnr.jpg"
+   ],
+   "hero": [
+    "/6n53UI4mX9QMfe2S0Pgt8mGebY1.jpg",
+    "/vgeDRVpSUa4Hvovg4C6dgm4dfUW.jpg",
+    "/hJZi4BNyejM0BtBlWsMhGx7dUoq.jpg"
+   ],
+   "posters": []
+  },
+  "german": {
+   "focus": [
+    "/jWXrQstj7p3Wl5MfYWY6IHqRpDb.jpg",
+    "/xBwtP27cx8WfjHJVFkpuV6F1RES.jpg",
+    "/kGxPVyra9Lvf5tPmTXnMEBpwOip.jpg",
+    "/A8ZP4aE0gq9FrHydF9HU4LCmrtF.jpg"
+   ],
+   "hero": [
+    "/3lmCHJoL2qtohUPEZLC5PdwA558.jpg",
+    "/rWZXt8MOLNF4zSj68rptePNzksX.jpg",
+    "/g11nKgir3nIhlG2gIDWIvJeR4fz.jpg"
+   ],
+   "posters": []
+  },
+  "haunted": {
+   "focus": [
+    "/smZ8BT4Vzw4iCEppTLCnN8jNYtn.jpg",
+    "/p5FOkor90VRBJEEhUMFdFdkixfe.jpg",
+    "/A2tzVTVtnTvpji96IZmleN78KKv.jpg",
+    "/2fOKVDoc2O3eZmBZesWPuE5kgPN.jpg"
+   ],
+   "hero": [
+    "/tcheoA2nPATCm2vvXw2hVQoaEFD.jpg",
+    "/2FXDdIGjDhEoBkuFk5NhHWLd3VX.jpg",
+    "/o73vpmtXq89bfSUMcAulLVN4TKP.jpg"
+   ],
+   "posters": []
+  },
+  "hbo-max": {
+   "focus": [
+    "/w9AiymbmQGt3jdtsm78HdfKkChy.jpg",
+    "/afUVsProh46h31w2EvL7qyHXrqj.jpg",
+    "/mo9bfYdewzmHxnaeURB2jRPvGuX.jpg",
+    "/l0qVZIpXtIo7km9u5Yqh0nKPOr5.jpg"
+   ],
+   "hero": [
+    "/cJYLon9ejKJV7ua03ab8Tj9u067.jpg",
+    "/QNE9Ihuas4duMHJYGQgAcuRtXz.jpg",
+    "/en3zftWPQb5Ue6aA8W88RQbtqzd.jpg"
+   ],
+   "posters": []
+  },
+  "heists": {
+   "focus": [
+    "/tjy25xpiFeo2gahl7N0hoxbRtG7.jpg",
+    "/uI3kWI7kGW5E0F8WduewgQYPt34.jpg",
+    "/jgAZYiuRV37pCxmhx8NTdhE36RL.jpg",
+    "/e5IdZ1OEWMYxTeu51tI67gXvfpn.jpg"
+   ],
+   "hero": [
+    "/xGexTKCJDkl12dTW4YCBDXWb1AD.jpg",
+    "/u38hNQbxvIicUdfrHpqa9puBnA9.jpg",
+    "/f1Z5X3iCCKK5FGu5VvzPkXO7eOl.jpg"
+   ],
+   "posters": []
+  },
+  "hindi": {
+   "focus": [
+    "/faJB8DXU0LXwq5ebMLj5drz8S4N.jpg",
+    "/v3LaeZ8uB4A6zUsLpQIKg8EOPGY.jpg",
+    "/slSC0xYHynkHAwIdLPqfW9Blcow.jpg",
+    "/bcB7FWjjhh4ign5MGKkBIBNMweD.jpg"
+   ],
+   "hero": [
+    "/wBu3BErMuZ51H701J8QjmoHdBHr.jpg",
+    "/xolKjFwnFJ4btmF7FadPxFWeQSd.jpg",
+    "/qlnDrGpDmvKPQEnpge8yY3XTm0F.jpg"
+   ],
+   "posters": []
+  },
+  "horror": {
+   "focus": [
+    "/vqNSvCFknXObgqn7nOFrJVEeGht.jpg",
+    "/o3XwuDUj0n8qnK91p6q8LKfr6rj.jpg",
+    "/oqrYIDH4tvfEzPe1yqT4jzmAWHQ.jpg",
+    "/kCwmLYy9ZMto1eMH8BI9KcVVIH2.jpg"
+   ],
+   "hero": [
+    "/iGViga8sDCET1S6GfwOlAbuhSGQ.jpg",
+    "/tw2ujWwgZMKt1IqzayqCmnODJvi.jpg",
+    "/oHBhHoNe59VH6bUMazDtJmWOFSS.jpg"
+   ],
+   "posters": []
+  },
+  "hulu": {
+   "focus": [
+    "/bk1TitfD4YIGrM6AvljonMCtfnl.jpg",
+    "/1xRfgONYmK3T6FSmbtcuo8eyxVt.jpg",
+    "/xhK9YCxNwnE0OB1SWvCY39heHQI.jpg",
+    "/mKikck71CvVISUSTLk29fwRbH4y.jpg"
+   ],
+   "hero": [
+    "/uujYvxE9s6KY4SbBZ0ZFN3oBJhW.jpg",
+    "/A4NwkQXTXElE5iAsne5RpvS8R2Z.jpg",
+    "/6iNWfGVCEfASDdlNb05TP5nG0ll.jpg"
+   ],
+   "posters": []
+  },
+  "indian-studios": {
+   "focus": [
+    "/b4WXm5ahmtubYXy3wqHUG2nUKoM.jpg",
+    "/oL6sSV6HIcx4R6aOVc1LYPEeyVO.jpg",
+    "/3uDyPIGNZ6OxGPaFgGs47JhNUuK.jpg",
+    "/eI3IR2OVtAcgwwmE4gphZ8539Kx.jpg"
+   ],
+   "hero": [
+    "/xFjk2l1SGgvrMYlFIHGiP7BfvEY.jpg",
+    "/baKI5pKd7TdjRAg216JOxnMMxiJ.jpg",
+    "/pfcyWSaPKGagqdunfBXQYCqZHxx.jpg"
+   ],
+   "posters": []
+  },
+  "italian": {
+   "focus": [
+    "/x4biAVdPVCghBlsVIzB6NmbghIz.jpg",
+    "/4WWlz8co7RbVBuCny2CicYuWJ8y.jpg",
+    "/6aNKD81RHR1DqUUa8kOZ1TBY1Lp.jpg",
+    "/7v3bO3pNnyLHLlwETtmyQxKV2Ba.jpg"
+   ],
+   "hero": [
+    "/8fvrcC2yv9ewbIcYvDMy6Dd3qqZ.jpg",
+    "/vadUKKQixxOKWkcuZ1SUEoBQeVG.jpg",
+    "/fbnuJ5WDR3EjHY9HcfJMLSuNQfR.jpg"
+   ],
+   "posters": []
+  },
+  "japanese": {
+   "focus": [
+    "/usLRh1bcbL0Q9X8zf6rL4OV1qrA.jpg",
+    "/zcQRmnySOmVqT6WRmdztbiA9vVk.jpg",
+    "/tb0uo01w2kDHiQwTszsLlSusAm4.jpg",
+    "/xkRI8RfjnMTDn8d9otLYneMzsJx.jpg"
+   ],
+   "hero": [
+    "/qvZ91FwMq6O47VViAr8vZNQz3WI.jpg",
+    "/dIO2lotjPIYPLcKM1cPxVc6Opy6.jpg",
+    "/noRX8VyyAFK1tt0DQSq5qy1tE10.jpg"
+   ],
+   "posters": []
+  },
+  "kids": {
+   "focus": [
+    "/tNi2aJPdCKfielGYzIi3IKxStz9.jpg",
+    "/r9QAxAW2KGQaVnEOxXKJuZ6RSJe.jpg",
+    "/7OrV2aAH5Yp7hA9zCCvUloLvZtl.jpg",
+    "/fKpfCR3l0WukHTkI6Z2ySX1if4P.jpg"
+   ],
+   "hero": [
+    "/ptEtIr3rVuAJpmbwaLJJqND6HVq.jpg",
+    "/h8tzpd1pqyKCu5V4lw3eUiO6L9Y.jpg",
+    "/gOyIKp7adMCzFrYjc5rxmt2PNhi.jpg"
+   ],
+   "posters": []
+  },
+  "korean": {
+   "focus": [
+    "/qqHFLg90IUSoTmSMpKOOW5RyqN3.jpg",
+    "/wsHj4oHQJoe7DMYaqNFwVoyLiAh.jpg",
+    "/8euBWjpN9NJhEXwq8YCih3WqYzW.jpg",
+    "/kCd0rmnNwCd3sgupO9DqSi9aHa0.jpg"
+   ],
+   "hero": [
+    "/axRYPjeLD4zjJNaIw4TPopbKVfs.jpg",
+    "/s2qJb1FLwp1Mse9lY08JqgMp0kw.jpg",
+    "/aQzXICKh3oaJanWSsSRJ2epB9Z5.jpg"
+   ],
+   "posters": []
+  },
+  "lucasfilm": {
+   "focus": [
+    "/upecGaCuQOIbSpdz85mrJ395UMg.jpg",
+    "/m6eRgkR1KC6Mr6gKx6gKCzSn6vD.jpg",
+    "/ysLlsAxwgNSxBWHCgTKJrmjxpRQ.jpg",
+    "/9zcbqSxdsRMZWHYtyCd1nXPr2xq.jpg"
+   ],
+   "hero": [
+    "/7jzCLnt5IDGDHhNAKTfbq1In4dM.jpg",
+    "/8BNjxMJMFp0BgqMh4PyuwZMXxh1.jpg",
+    "/p81vVRxWKGbCkTyywUb4ySwqLJh.jpg"
+   ],
+   "posters": []
+  },
+  "malayalam": {
+   "focus": [
+    "/zms3m4kVz7RXmobU1B0nhrvUEmP.jpg",
+    "/q2mCC4UhaHwaGLOgIJAW8Mjb4IX.jpg",
+    "/a6RkQIOZ6wThQOEDv6lHsfH53hD.jpg",
+    "/axzUkZk5CAWX2xqOB69WSHOoRUT.jpg"
+   ],
+   "hero": [
+    "/6Jz7rnnZrSkgs9ySWUxewpcxr7Q.jpg",
+    "/cEfpO6QG5Ks5cTJ8bRrZJiDYKUH.jpg",
+    "/xrIicBg0Ac4oQ6cwUPKJxwtqhOQ.jpg"
+   ],
+   "posters": []
+  },
+  "martial-arts": {
+   "focus": [
+    "/ydf1CeiBLfdxiyNTpskM0802TKl.jpg",
+    "/mpsYIytXhDXjI9yYC1Fp1S3PxsS.jpg",
+    "/r7K6Xt0RX4Mw0cAbZVw5cyb1Tux.jpg",
+    "/bFKKyCI89Xq98Gul8cGox8K3sZa.jpg"
+   ],
+   "hero": [
+    "/5VKTBTheoNKGlMWcJVdYZLPJW9q.jpg",
+    "/cTCn2EO69SERNfhaezJMoqBom4G.jpg",
+    "/rwf5SUTiEsmfkXAgy15R0UtJUtv.jpg"
+   ],
+   "posters": []
+  },
+  "marvel-cinematic-universe": {
+   "focus": [
+    "/uoXXbN2PrOxH6UKyP7kYwmGpAAP.jpg",
+    "/xfBnQ4mgf1jYZsscJGJjr6ce0Ar.jpg",
+    "/iWopHyAvuIDjGX10Yc3nn6UEebW.jpg",
+    "/7lmBufEG7P7Y1HClYK3gCxYrkgS.jpg"
+   ],
+   "hero": [
+    "/q3jHCb4dMfYF6ojikKuHd6LscxC.jpg",
+    "/1wOu8rdvPxU1ObHi20VcRhfNpbo.jpg",
+    "/pPALpad1Fh14g7ejyQjqKzlhrBw.jpg"
+   ],
+   "posters": []
+  },
+  "marvel-studios": {
+   "focus": [
+    "/qO55CD8tgVL1T4WKn6zYFFiD6lL.jpg",
+    "/s94NjfKkcSczZ1FembwmQZwsuwY.jpg",
+    "/7CvmnHAVxhDbYE7jPp0PbKunqqs.jpg",
+    "/rthMuZfFv4fqEU4JVbgSW9wQ8rs.jpg"
+   ],
+   "hero": [
+    "/qrTAc0ZtQ859Qu5O8cixJzNJpQs.jpg",
+    "/ce3prrjh9ZehEl5JinNqr4jIeaB.jpg",
+    "/cq62fLH3vwOmiaLKMqkDI86tPtH.jpg"
+   ],
+   "posters": []
+  },
+  "mind-bending": {
+   "focus": [
+    "/iFOkrSrJRwE27PwbyQeYLlMJXzw.jpg",
+    "/bhF63Jd90gRYyTHd4y5GCGA2vX6.jpg",
+    "/sQYXs0FyAPhQf6UUas9YBgq64qh.jpg",
+    "/hMpPCoCUOiaR9hLhVMOu1SlIEWj.jpg"
+   ],
+   "hero": [
+    "/kVd3a9YeLGkoeR50jGEXM6EqseS.jpg",
+    "/l0XvAI856XdyDYEfr1njztjH7u0.jpg",
+    "/vbkpl0ps4s5tMTUnC7SFXNzWmVr.jpg"
+   ],
+   "posters": []
+  },
+  "music": {
+   "focus": [
+    "/g7CHF8gTLGooTbP4GznIGwaqAGL.jpg",
+    "/iQJZMLr5cdn7Al2Av4V1VEzPDoQ.jpg",
+    "/ufSwlnECLoUbBjPrFqEQcWBzHwc.jpg",
+    "/fRGxZuo7jJUWQsVg9PREb98Aclp.jpg"
+   ],
+   "hero": [
+    "/w3Bi0wygeFQctn6AqFTwhGNXRwL.jpg",
+    "/mguy0nefEUY7NKruffpLO3Stj3d.jpg",
+    "/z9ft5HYHzWcasR6SGcgeluxTznB.jpg"
+   ],
+   "posters": []
+  },
+  "mystery": {
+   "focus": [
+    "/zmfUqsFcQs6BjLJStofM5MD2l7L.jpg",
+    "/cKetrF2dAnQ0AMV5i4BMOs41I5P.jpg",
+    "/ojKki5HusCHPrsU2Li7zof0NgD9.jpg",
+    "/psTMZj8gvsfYVfvd7FZCHH4xL6P.jpg"
+   ],
+   "hero": [
+    "/ot1UteJ1TL3xWuhkLRNzBULw4KJ.jpg",
+    "/eAXSlqAJwpdsZ59G10lao9OJ4SG.jpg",
+    "/jwBs4djVIe9Kz3Vu9rsI9aEEKWU.jpg"
+   ],
+   "posters": []
+  },
+  "netflix": {
+   "focus": [
+    "/uxKS3Wmi5xH3zRxZCo7retMpvPR.jpg",
+    "/aatG9iVAUL7U7OyFEmupESpOrD2.jpg",
+    "/tMRdEsMg9MyXAkcufK9YJEeIaNW.jpg",
+    "/gFkHcIh7iE5G0oVOgpmY8ONQjhl.jpg"
+   ],
+   "hero": [
+    "/k2djfMwL3LhpvZMfPN7IFX4DG5N.jpg",
+    "/8VXhcrl5z2I1zEU9X3pkkNrZlD.jpg",
+    "/AtcZyZizpGhofYumo1JrjuIFkXv.jpg"
+   ],
+   "posters": []
+  },
+  "new-releases": {
+   "focus": [
+    "/rACaCUxa8WAxkqdpZl0vGqBmIJg.jpg",
+    "/cVUKFfws4upCB4ytz5uGIONIiRc.jpg",
+    "/hYJqUoXRZnodGxgVZTM8uwr5kbC.jpg",
+    "/ob7m6JqZ7jSOocR3VL73VxRC6Is.jpg"
+   ],
+   "hero": [
+    "/9nU0FKNefmhbgi2xXlvZchZsqwm.jpg",
+    "/oaWJm4brEMSWBmQIB73DFxsU683.jpg",
+    "/9M93SUJaDBAJkXN5GfdoFSjzhSE.jpg"
+   ],
+   "posters": []
+  },
+  "pan-india-blockbusters": {
+   "focus": [
+    "/z4k7b66jAHP8sQbEahxss6Ct8BW.jpg",
+    "/n9QCm8uagvmXH476u5qFQsW8HkU.jpg",
+    "/yrQTyiJpki9dCuIU0bGhGXBu7Zh.jpg",
+    "/5LtSjMNw6j3LkG29Oa4O0iY5U8.jpg"
+   ],
+   "hero": [
+    "/o0nLkPesXPugGw0rB15hDhZd1DX.jpg",
+    "/gxfvtq5eYiClS2X7hxAAPBNrbWA.jpg",
+    "/5Ou4oQHf2sYdLMGfv3FtXHWO3vL.jpg"
+   ],
+   "posters": []
+  },
+  "paramount-plus": {
+   "focus": [
+    "/iMFsQ7yyToYg7SkS9Ml0by9UJ0X.jpg",
+    "/tUtXfyVy54BY7eJnRtI8Xnmr1ZL.jpg",
+    "/qLMfcvdCcCGD2BNLH8b6ZCBuO7D.jpg",
+    "/gMMnf8VRg3Z98WaFmOLr9Jk8pIs.jpg"
+   ],
+   "hero": [
+    "/rHKRZCBpDFSNc45kzyf665LJYp3.jpg",
+    "/66Kn4XWhkuPkJxOJyPEx4U2CUfN.jpg",
+    "/mNHRGO1gFpR2CYZdANe72kcKq7G.jpg"
+   ],
+   "posters": []
+  },
+  "peacock": {
+   "focus": [
+    "/nO7EzksrBzlNpAg5rgv8HzaBIkx.jpg",
+    "/a7T6Em0tUpEauMXosTWQ2q8SQCM.jpg",
+    "/sy0vo1cmpKqwPRiMUiJ45jyLsX7.jpg",
+    "/9vMzIrMIncPmtalcxh1MOrgcE6C.jpg"
+   ],
+   "hero": [
+    "/yXuZVMnOEsIhx1vtu9kJGpzmjGN.jpg",
+    "/hINekSpbcBxjnjGqmIm6I4bz2ab.jpg",
+    "/7RsPdXLDNugDIlwXPVeeprNfMx.jpg"
+   ],
+   "posters": []
+  },
+  "pixar": {
+   "focus": [
+    "/u53UYu5XG2hNgWGvs3xGhAVzypl.jpg",
+    "/ukPu5xYOBAnh5H46uK4aQOirW2b.jpg",
+    "/A3Vlvhhu2IxKXnv5EXAczuNWCys.jpg",
+    "/p5ozvmdgsmbWe0H8Xk7Rc8SCwAB.jpg"
+   ],
+   "hero": [
+    "/7coeQpxiYa7mNpzLtWFn5KJSdr.jpg",
+    "/wLttOcR1wJGedXfpe69y215NvjN.jpg",
+    "/4fLZUr1e65hKPPVw0R3PmKFKxj1.jpg"
+   ],
+   "posters": []
+  },
+  "portuguese": {
+   "focus": [
+    "/uvitbjFU4JqvMwIkMWHp69bmUzG.jpg",
+    "/7Vpk75SxS86Ai7o2iilJUz5rx4x.jpg",
+    "/tTevcc0y0EQLeEyg4aMsrGyy7NO.jpg",
+    "/ht9yOz8t4fjqMfruYxwv9mOV0F2.jpg"
+   ],
+   "hero": [
+    "/j9uruwRe9qM8RnP758dF7ISB8Bj.jpg",
+    "/i4vk5wn9seCC0Kb3cz1jrLXJ7yx.jpg",
+    "/z8mTDyKdAWjKsD0vwa7e9LTSY1j.jpg"
+   ],
+   "posters": []
+  },
+  "post-apocalyptic": {
+   "focus": [
+    "/rAOjnEFTuNysY7bot8zonhImGMh.jpg",
+    "/d8rse1RgMzXwmZvBpDvcG1VUO2Y.jpg",
+    "/eTlcNXGv32zkVI7ZDHhfeaKHXKQ.jpg",
+    "/8ZerYKvIaNUJZvAHXYTQu4qTwFw.jpg"
+   ],
+   "hero": [
+    "/dvDkq5Mcv27vpHRvF1ywFGroh03.jpg",
+    "/lY2DhbA7Hy44fAKddr06UrXWWaQ.jpg",
+    "/nHRUtBwFNnNN70vcQ7lAsjc2T6S.jpg"
+   ],
+   "posters": []
+  },
+  "prime-video": {
+   "focus": [
+    "/qKFLZz7rnZAJuyZ9HVEhwIINftz.jpg",
+    "/x6kwEsxxqLIoqpIrZOXRV0LORqm.jpg",
+    "/jCQV3rHNbgHKo3N4G6CARbVEjPV.jpg",
+    "/lRsapglJZIyMfGl8oQyNASlZqDC.jpg"
+   ],
+   "hero": [
+    "/ryA5uYC7mVZv9dEnAGvL9Iv8kVZ.jpg",
+    "/eSgGtHV6Qk3QhV1fr2B66ykMIph.jpg",
+    "/iq4BjyVsDxzg24XnjoGP0Xi2Tz5.jpg"
+   ],
+   "posters": []
+  },
+  "reality": {
+   "focus": [
+    "/ykWWT8FAChBffNxcDzoJMCK9LBb.jpg",
+    "/q8fmM50In8xGVW0iYoENPa71kAA.jpg",
+    "/u0306BuqVMpMR7y57OpWZnm7WLI.jpg",
+    "/a8a8z4aJr40zYgRMfmSESppX2eO.jpg"
+   ],
+   "hero": [
+    "/3SWOj8ydFrxiuZdLg63fDAt4jYR.jpg",
+    "/jNV9cnBRukyzUdBb1kw1UXY2l9R.jpg",
+    "/6dBJ8KW0U2yRB6Uzo1CRc3Q2Uww.jpg"
+   ],
+   "posters": []
+  },
+  "science-fiction": {
+   "focus": [
+    "/fmDlTFlEK1MO9TfXWf0ixZxhBBG.jpg",
+    "/fvsSPqeVq4yhp7oZTGXA99uDQ1v.jpg",
+    "/nGOgNoY1xDxt9e2QkgR3K7EUbSe.jpg",
+    "/lXI2fhjeoah5d5pxoR9GMogb6Q3.jpg"
+   ],
+   "hero": [
+    "/jHGP0TvaaLr5pOinXJpXmYXIbx7.jpg",
+    "/9MX00JWNffiowgi8OCdStq5ZhrP.jpg",
+    "/qb9vehNFxTpPrazhD7JJ6QtEtCv.jpg"
+   ],
+   "posters": []
+  },
+  "slashers": {
+   "focus": [
+    "/wxiBsKFEOOFK8eQStWOykNORlXY.jpg",
+    "/o375tDNib7tihlkWdtLW1fQhNL1.jpg",
+    "/lyZmMTwpr6ZCXKA7lszpXcDwNOM.jpg",
+    "/xWBiXclrRmTggQHMRsIn84YHavs.jpg"
+   ],
+   "hero": [
+    "/uXY6k8Gd45cTGzlz5s0A2ejDBXa.jpg",
+    "/mufF1aYvwdpKerhq5R1YrVcbJLY.jpg",
+    "/3wssj86c6b2WQLWGF8BTF2oRG02.jpg"
+   ],
+   "posters": []
+  },
+  "spanish": {
+   "focus": [
+    "/z8yQ9EZxMHaCwysqIO4LUyOuKJz.jpg",
+    "/oAkpvVvoyZWMo9cpNk3aQoVKsjM.jpg",
+    "/ho48HnguL11niYrqMETtP8A6SWY.jpg",
+    "/upxQBHRpgUJx33d1iG6rpzg0M5S.jpg"
+   ],
+   "hero": [
+    "/gS67p2XWTpguQ9MCfd7gkc7hUsZ.jpg",
+    "/zbpimMxf6Ms96v3Zypuv8WltMSO.jpg",
+    "/coHgKyLRwhbMktEWr6dwSYUg2BH.jpg"
+   ],
+   "posters": []
+  },
+  "stand-up": {
+   "focus": [
+    "/zAP5PZVtSIOZwweMaHmNKHJ3xTF.jpg",
+    "/bDwOkqwRFDoGxUzyIe6KUSmye5e.jpg",
+    "/afyjB6cwJnTbo0OmnrGTl1V1pNt.jpg",
+    "/tNBIV77HHlM7rJzmZE5VqA1ciEA.jpg"
+   ],
+   "hero": [
+    "/3qS74RxSO4K9TaxSSHPHc1vCGFW.jpg",
+    "/1wruGeuequY1PumBfEgCEifpGb5.jpg",
+    "/k2k4TeOnOXxy3bPt1LSjf4uWdqP.jpg"
+   ],
+   "posters": []
+  },
+  "superheroes": {
+   "focus": [
+    "/4wVq9ICc4MI2XcssrumpCOhKLpI.jpg",
+    "/wAFuDJfZJrnh6a1wf1Vt7PqYBvR.jpg",
+    "/bq28ajZaoMyzEIm6REelqyqtEDZ.jpg",
+    "/be8fOACxsVyaX6lZLlQOWNqF0g2.jpg"
+   ],
+   "hero": [
+    "/9qrroces8C6R9aKr08hACNPVXdZ.jpg",
+    "/AdyJH8kDm8xT8IKTlgpEC15ny4u.jpg",
+    "/pOKcw45cAMPu8DN7E3bN5FEvxM3.jpg"
+   ],
+   "posters": []
+  },
+  "tamil": {
+   "focus": [
+    "/t0btQjhAnL0z6I4QYB5KEPyl5Gb.jpg",
+    "/xhBaF3bpEnZhf61klsWaFKkNZF.jpg",
+    "/xjg35ysPaaC8tlmlH2tD5J038l3.jpg",
+    "/hEFbJLsoFhEcf3OtFgptrllxBxI.jpg"
+   ],
+   "hero": [
+    "/mRq7ZKtXp2eI52iQ2tLF2jWelLX.jpg",
+    "/v3lNH2gCojWYXVuXcT9FZLBxcSq.jpg",
+    "/dGwldIKMQeNzmLEc0hJAEVuund9.jpg"
+   ],
+   "posters": []
+  },
+  "telugu": {
+   "focus": [
+    "/uXIISM9rhMr4bOpldzsBRj02axW.jpg",
+    "/7hBTzc7c0rTIQRe9mJYjvxrmeoS.jpg",
+    "/7AcH5TFppoMusNkCBLaQP6UOODp.jpg",
+    "/9uOZUDapEqN8qiJ3z8aSCj5k488.jpg"
+   ],
+   "hero": [
+    "/bF4B3ZbA9yRLBGaEpzLkcqzi4a1.jpg",
+    "/apYa4WGxj5FQUvKwDfaJ0MR0IGy.jpg",
+    "/uGkgjbgKHuw4xuYiwGCthr7ECbK.jpg"
+   ],
+   "posters": []
+  },
+  "thai": {
+   "focus": [
+    "/xA6AM5MvEkieZKlv1Tn3sN23I7i.jpg",
+    "/VgW1XPEFiwEZgYuR2Wl204DxGL.jpg",
+    "/A7WpMBH6N1T0pPIEXsq9w4tu0oB.jpg",
+    "/xlyT6E0jceTQ9s4BpHY6PkeOilr.jpg"
+   ],
+   "hero": [
+    "/dk68ykaNd3HdrDJyPJqEGsgvag7.jpg",
+    "/wTgDY1izbDCbdgsNS1ujLk7lepG.jpg",
+    "/iwCti1LGupsMjCzuhaccUA4OZfo.jpg"
+   ],
+   "posters": []
+  },
+  "thriller": {
+   "focus": [
+    "/dJTWIecL2vxsCRl5G0lRhPsfrhc.jpg",
+    "/qBq5WnciKVDc9gaVyP7pKKNeveY.jpg",
+    "/gnNqqmIAlLLzAATMdgqq91dTnpY.jpg",
+    "/A2qdFRq9oJDC5E7fbgSS4POUMDF.jpg"
+   ],
+   "hero": [
+    "/cvlLBcQWpO9X21jDHhgPJnE2aVq.jpg",
+    "/z67lpMtm8YGykJO4p89meuNMvj8.jpg",
+    "/hcFt6RS16V187OLHlxZMRzUyJTi.jpg"
+   ],
+   "posters": []
+  },
+  "time-travel": {
+   "focus": [
+    "/7SaemP7orK8rREdl7MpATNQ3szY.jpg",
+    "/8VWgyQjExeMgeg6Qzv6agduMU1A.jpg",
+    "/blQAnnr142bJZVCqj7SdZV7UvCT.jpg",
+    "/nf3Vlxm3C9U1aKUUQHmKFZmxPSc.jpg"
+   ],
+   "hero": [
+    "/gl73XYPrjMoxZSxXjbU6pbQocH5.jpg",
+    "/anpV87sJo2XvZg1IM9Zg31WqHN6.jpg",
+    "/5TpptGoxVVght2n6oz8QJklmSTu.jpg"
+   ],
+   "posters": []
+  },
+  "top-rated": {
+   "focus": [
+    "/sGitHICLzIQQBiwE67lZLy6W67u.jpg",
+    "/cdD0InWMH4e6AxceQs93fQRYsfO.jpg",
+    "/rBOnrVlck7BIlGeWVlzYiZeg4l2.jpg",
+    "/7oBGhqJIghRBvOwo5Qe0yM0cnMc.jpg"
+   ],
+   "hero": [
+    "/5cvnxEHT3e39DvT6ARw4GNCFrB0.jpg",
+    "/zGCnIADWwpjGllYv8DgT8HIuIQl.jpg",
+    "/z3BkMbCy5ajZPMyKEUwsPHuz2cV.jpg"
+   ],
+   "posters": []
+  },
+  "trending-in-india": {
+   "focus": [
+    "/kaugQAtftkyTmZe9DxZOu01AIA3.jpg",
+    "/g0bUWOiTkDN0qNnBVVudjnQIuNU.jpg",
+    "/wQ1cpJW9uxfKmO8msAF5z4edK63.jpg",
+    "/3gcA80UNEO6pAgpTUf7RFS13KPa.jpg"
+   ],
+   "hero": [
+    "/bMxAWOQN8Y0USoCrGSywQ0K2Sfb.jpg",
+    "/vOXCP8gDeChnUyDVro0jUaT7Acr.jpg",
+    "/r22LSVD46wOY3rkavnM4gWc3sz2.jpg"
+   ],
+   "posters": []
+  },
+  "trending-now": {
+   "focus": [
+    "/7ojpD6ARKYhRxnsjzMIrorOfj4T.jpg",
+    "/wdjW11Tp4w9EfDBxbjyBJvDVHDA.jpg",
+    "/dLIKNqBi9L1cVbwuniXkaNOsIXg.jpg",
+    "/pFTGCQ3oVhFkuOCjnvCPeVsQBaL.jpg"
+   ],
+   "hero": [
+    "/r4DTGm1f1r23cyjRJ5kFMh7qYlj.jpg",
+    "/vcpj6rRDS93ImHCLPY8bwBuFGjR.jpg",
+    "/m8JTMj7jDMJFZAPP1ASmSi4gMWi.jpg"
+   ],
+   "posters": []
+  },
+  "true-crime": {
+   "focus": [
+    "/lpDVJuIro21gtMj9iXMFKHuroZN.jpg",
+    "/3zCPI4JFc54xvLaJ71oI2KoP3az.jpg",
+    "/4m8QH2C6hBQQ08EgwaOtOv7ATFh.jpg",
+    "/kG55K0xufD2xGonmreT5TqnVYzc.jpg"
+   ],
+   "hero": [
+    "/j6djmR4hi8ULL0xUPQN4ZVyzgVN.jpg",
+    "/wfabrzHzfYTdCj3iSCY7OEQbND0.jpg",
+    "/gaew60NXUxok3Vmls7gkAT7lYW0.jpg"
+   ],
+   "posters": []
+  },
+  "true-stories": {
+   "focus": [
+    "/zJiWhsEYCy5BkFCBONoMnUunyZQ.jpg",
+    "/j8NSaQJqnSOx8vsxwEukY3oATNj.jpg",
+    "/y9ekzkPFmWSqUU3Kj0wHmYUM8qu.jpg",
+    "/7Nwnmyzrtd0FkcRyPqmdzTPppQa.jpg"
+   ],
+   "hero": [
+    "/AjwoDj77HLlqcpwEGqsnvMXm5my.jpg",
+    "/nusKn1Kkjz4NsAKXBswjJVOwMXQ.jpg",
+    "/wAI88UNTlach9EjFzQRseg0VU2h.jpg"
+   ],
+   "posters": []
+  },
+  "turkish": {
+   "focus": [
+    "/u3riq0UYL2aowB6u1xScMfDUFmr.jpg",
+    "/vV5GFJtp8DgAysY1F0WfIwedi81.jpg",
+    "/oz4HTAYTtT0p8kdruZOAKV20nh9.jpg",
+    "/puLaqdcTRwFxwv9S3PO6jA3ep7J.jpg"
+   ],
+   "hero": [
+    "/ogyUszy5ZjQyXpKd6f5aT4lHVaq.jpg",
+    "/3B6KkxzOj3P3zxfPExbbbVXtzeo.jpg",
+    "/5fA3ko0ZHkysz1aNO78jRsey4k4.jpg"
+   ],
+   "posters": []
+  },
+  "universal-pictures": {
+   "focus": [
+    "/bpll0oy6gHwLvypfFNfT2QI4VkT.jpg",
+    "/2TWIlmhE06ghspeQLEX1VmnEBiE.jpg",
+    "/1aZRLKVhDFQJvlCi9SPa1yGF9OJ.jpg",
+    "/l8pwO23MCvqYumzozpxynCNfck1.jpg"
+   ],
+   "hero": [
+    "/jzzpCJWkVZZwAxzzLmtYN0MBWFd.jpg",
+    "/82C04rTiXYZ7c8XZv91Nu53w82Y.jpg",
+    "/t20uEbEGp3wS1fzyYWZK5FQdKva.jpg"
+   ],
+   "posters": []
+  },
+  "walt-disney-pictures": {
+   "focus": [
+    "/v8tpkxm7AhLu69eaZKJLsNaSL5.jpg",
+    "/pUNfHmVqfwRdILhCkU8TdysVOXo.jpg",
+    "/yQy9Y3p5INwkfTuHSnzYnz4MCV3.jpg",
+    "/7Zx3wDG5bBtcfk8lcnCWDOLM4Y4.jpg"
+   ],
+   "hero": [
+    "/aJZ33UhVlInyFENbH4GK4s0k6E0.jpg",
+    "/tyfO9jHgkhypUFizRVYD0bytPjP.jpg",
+    "/1w8kutrRucTd3wlYyu5QlUDMiG1.jpg"
+   ],
+   "posters": []
+  },
+  "war": {
+   "focus": [
+    "/mU7l9UaEItxHbg2YBNs0sHjoFVY.jpg",
+    "/13kblIK8DnxMurcRDkeyy2sGR7v.jpg",
+    "/4VaZd4zcsg2dJlZWdWrqPmBRrIx.jpg",
+    "/8nkOWsMtWZvp7IGuYdVbJeoWzQx.jpg"
+   ],
+   "hero": [
+    "/391ixi0wVbFtFLQnOy8ZncWv2io.jpg",
+    "/4pYKqctQvvdyhuGjiK4szH9jEv9.jpg",
+    "/ojyo33io8HGxNCRg21Z1o87YEZX.jpg"
+   ],
+   "posters": []
+  },
+  "warner-bros": {
+   "focus": [
+    "/oIglj0Jy9duG4LnrRUpH8n001Pk.jpg",
+    "/uXgWbwxmCW6XZ3ylRThk9Sqhwwq.jpg",
+    "/2KArIXEUQbLuCYPnvPfQAZqnHpg.jpg",
+    "/ydizf7MP7vOYK7bnDcqAvhFVYxr.jpg"
+   ],
+   "hero": [
+    "/j7KqDRzjbvIjDv7cdHz9G3ZYEQy.jpg",
+    "/wHXyGLjYPm4bHNKFQPCfYWiTeSH.jpg",
+    "/AVWlQpVhpudyFsSh3OQIieHHYf.jpg"
+   ],
+   "posters": []
+  },
+  "western": {
+   "focus": [
+    "/61OxoiBHvGFOB4gufYfypHyCbI4.jpg",
+    "/ynSOcgDLZfdLCZfRSYZGiTgYJVo.jpg",
+    "/fCCvn3xsG29TGKJPvZgTRppsDgk.jpg",
+    "/rX5hvSRB2k4YoIvRg6Zky52rWk0.jpg"
+   ],
+   "hero": [
+    "/hEQYZq2CDB2LSJVxxlazdBOKeyW.jpg",
+    "/7z1QYCB1cu06u3oJwIupRlZ8SrX.jpg",
+    "/b8hPBW0NJmiIVzvQjT3CwIpAdzl.jpg"
+   ],
+   "posters": []
+  },
+  "zombies": {
+   "focus": [
+    "/pYErfWWb52zq9QQFoZ0Qeoo5Yz.jpg",
+    "/tPUEME9NpRo4l3lxdVJRwp5stx5.jpg",
+    "/tCjXy1iCsr2BVlNczafnkZ40LPn.jpg",
+    "/hXRAKps7stKEcRZzub7YPHFTJkK.jpg"
+   ],
+   "hero": [
+    "/brnfCYyz8EMbBrHgmh8sCwBi5i1.jpg",
+    "/jZAtLKNZbQZZLm9OLcY9rdZZV5F.jpg",
+    "/jotp0hyUho6BlIbRBuvRevtiXXv.jpg"
+   ],
+   "posters": []
+  }
+ },
+ "collections": {
+  "spotlight": "/78dChJs7doULSEhIiOvGUcXQRGU.jpg",
+  "streaming": "/lkDYN0whyE82mcM20rwtwjbniKF.jpg",
+  "genres": "/pQBjQCtldmru3EhWVH83qKfnvPL.jpg",
+  "moods": "/fAlQZsCOCvxOj0PmFmt4i8IWR2u.jpg",
+  "franchises": "/gLjZC1YGcujC82DF5subtEXWg7F.jpg",
+  "studios": "/m2QTmJhe36uKrkQjC1MsNV7Dcqp.jpg",
+  "world": "/wsswvMZYVti7Z3i8a8DgK8sd9WP.jpg",
+  "indian-cinema": "/50yPSUThPKxeC9FLGQxB6WoY8f2.jpg"
+ }
+}
